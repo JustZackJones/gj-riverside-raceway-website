@@ -1,13 +1,6 @@
 
 export const bannerImages: BannerImage[] = [
     {
-        src: "/images/fliers/summer-spintacular-2026.jpg",
-        link: "/summer-spintacular",
-        objectPosition: "center 50%",
-        objectFit: "contain",
-        displayTimeMs: 10000,
-        active: true
-    }, {
         src: "/images/outdoor-track/3.28.2026/410-sprint-lineup.jpg",
         objectPosition: "center 50%",
         objectFit: "cover",
