@@ -128,6 +128,7 @@ export default function Home() {
                             width="1100px"
                             style={{margin: '0px auto'}}
                             showLastRoundOnly
+                            startCollapsed
                         />
                     </FullWidthRow>
                     <FullWidthRow className={`race-results ${getNextRowClass()}`}>

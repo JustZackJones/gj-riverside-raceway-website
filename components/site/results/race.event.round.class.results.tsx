@@ -12,11 +12,13 @@ function getClassWinner(results: RaceEventDriverResult[]): RaceEventDriverResult
 export default function RaceEventRoundClassResults({
 	className,
 	results,
+	startCollapsed = false,
 }: {
 	className: string
 	results: RaceEventDriverResult[]
+	startCollapsed?: boolean
 }) {
-	const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
+	const [isCollapsed, setIsCollapsed] = useState<boolean>(startCollapsed)
 	const winner = getClassWinner(results)
 
 	function toggleCollapsed() {

@@ -28,16 +28,23 @@ function sortRoundEntries(entries: [string, RaceEventRoundResultsByClass][]): [s
 function RoundResultsSection({
 	roundName,
 	classes,
+	startCollapsed = false,
 }: {
 	roundName: string
 	classes: RaceEventRoundResultsByClass
+	startCollapsed?: boolean
 }) {
 	return (
 		<Column className="rounded border border-gray-300 bg-white p-3" gap={3}>
 			<BriefContentHeader icon="fa-solid fa-trophy">{roundName}</BriefContentHeader>
 			<Column gap={3}>
 				{Object.entries(classes).map(([className, results]) => (
-					<RaceEventRoundClassResults key={className} className={className} results={results} />
+					<RaceEventRoundClassResults
+						key={className}
+						className={className}
+						results={results}
+						startCollapsed={startCollapsed}
+					/>
 				))}
 			</Column>
 		</Column>
@@ -47,12 +54,14 @@ function RoundResultsSection({
 export default function RaceEventRoundResults({
 	eventId,
 	showLastRoundOnly = false,
+	startCollapsed = false,
 	className,
 	style,
 	width = '100%',
 }: {
 	eventId: number
 	showLastRoundOnly?: boolean
+	startCollapsed?: boolean
 	className?: string
 	style?: React.CSSProperties
 	width?: string
@@ -101,7 +110,12 @@ export default function RaceEventRoundResults({
 			)}
 
 			{!isLoading && orderedRounds.map(([roundName, classes]) => (
-				<RoundResultsSection key={roundName} roundName={roundName} classes={classes} />
+				<RoundResultsSection
+					key={roundName}
+					roundName={roundName}
+					classes={classes}
+					startCollapsed={startCollapsed}
+				/>
 			))}
 		</Column>
 	)
