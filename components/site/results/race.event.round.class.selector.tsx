@@ -146,7 +146,7 @@ export default function RaceEventRoundClassSelector({
 			<Column className="w-full rounded border border-gray-300 bg-white p-3" gap={3}>
 				<BriefContentHeader icon="fa-solid fa-filter">Race Results Explorer</BriefContentHeader>
 
-				<div className="grid w-full grid-cols-2 gap-2">
+				<div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3">
 					<Column className="min-w-0" gap={1}>
 						<label htmlFor="results-event-select" className="text-sm font-semibold text-gray-700">Event</label>
 						<select
@@ -183,9 +183,8 @@ export default function RaceEventRoundClassSelector({
 							))}
 						</select>
 					</Column>
-				</div>
 
-				<Column className="w-full" gap={1}>
+					<Column className="min-w-0" gap={1}>
 						<label htmlFor="results-class-select" className="text-sm font-semibold text-gray-700">Class</label>
 						<select
 							id="results-class-select"
@@ -200,6 +199,7 @@ export default function RaceEventRoundClassSelector({
 							))}
 						</select>
 					</Column>
+				</div>
 			</Column>
 
 			{isLoadingEvents && (

@@ -26,7 +26,7 @@ export default function RaceEventRoundClassResults({
 	}
 
 	return (
-		<Column className="rounded border border-gray-300 bg-gray-50 p-3" gap={2}>
+		<Column className="w-full rounded border border-gray-300 bg-gray-50 p-3" gap={2}>
 			<div
 				className="w-full rounded px-1 py-1 transition-colors hover:bg-gray-100 cursor-pointer"
 				onClick={toggleCollapsed}
@@ -55,16 +55,16 @@ export default function RaceEventRoundClassResults({
 
 			{results.length > 0 && (
 				<>
-					<div>
+					<div className="w-full">
 						<div
-							className="grid transition-all duration-300 ease-in-out"
+							className="grid w-full transition-all duration-300 ease-in-out"
 							style={{
 								gridTemplateRows: isCollapsed ? '0fr' : '1fr',
 								opacity: isCollapsed ? 0 : 1,
 							}}
 						>
-							<div className="overflow-hidden">
-								<Column gap={2}>
+							<div className="w-full overflow-hidden">
+								<Column className="w-full" gap={2}>
 									{results.map((result) => (
 										<RaceEventRoundClassDriverResults key={result.id} result={result} />
 									))}
@@ -73,15 +73,15 @@ export default function RaceEventRoundClassResults({
 						</div>
 
 						<div
-							className="grid transition-all duration-300 ease-in-out"
+							className="grid w-full transition-all duration-300 ease-in-out"
 							style={{
 								gridTemplateRows: isCollapsed && winner ? '1fr' : '0fr',
 								opacity: isCollapsed && winner ? 1 : 0,
 							}}
 						>
-							<div className="overflow-hidden">
+							<div className="w-full overflow-hidden">
 								{winner && (
-									<Column gap={1}>
+									<Column className="w-full" gap={1}>
 										<RaceEventRoundClassDriverResults result={winner} />
 									</Column>
 								)}
