@@ -127,14 +127,15 @@ export default function Home() {
                             eventId={resultsEventId}
                             width="1100px"
                             style={{margin: '0px auto'}}
+                            showLastRoundOnly
                         />
                     </FullWidthRow>
                     <FullWidthRow className={`race-results ${getNextRowClass()}`}>
                         <RaceEventWinners 
                             eventId={resultsEventId}
                             width="1100px"
-                            showLastRoundOnly
                             style={{margin: '0px auto'}}
+                            showLastRoundOnly
                         />
                     </FullWidthRow>
                     </>

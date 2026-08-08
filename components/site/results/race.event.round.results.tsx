@@ -10,6 +10,21 @@ import API from '@/lib/api/api'
 export type RaceEventRoundResultsByClass = Record<string, RaceEventDriverResult[]>
 export type RaceEventResultsByRound = Record<string, RaceEventRoundResultsByClass>
 
+function getRoundPriority(roundName: string): number {
+	if (/^main events$/i.test(roundName.trim())) return 1000
+
+	const qualifierMatch = roundName.match(/^qualifier round\s+(\d+)$/i)
+	if (qualifierMatch) {
+		return parseInt(qualifierMatch[1], 10)
+	}
+
+	return -1
+}
+
+function sortRoundEntries(entries: [string, RaceEventRoundResultsByClass][]): [string, RaceEventRoundResultsByClass][] {
+	return [...entries].sort(([leftName], [rightName]) => getRoundPriority(rightName) - getRoundPriority(leftName))
+}
+
 function RoundResultsSection({
 	roundName,
 	classes,
@@ -31,11 +46,13 @@ function RoundResultsSection({
 
 export default function RaceEventRoundResults({
 	eventId,
+	showLastRoundOnly = false,
 	className,
 	style,
 	width = '100%',
 }: {
 	eventId: number
+	showLastRoundOnly?: boolean
 	className?: string
 	style?: React.CSSProperties
 	width?: string
@@ -48,7 +65,16 @@ export default function RaceEventRoundResults({
 
 		API.getEventResults(eventId)
 			.then((data) => {
-				setResultsByRound((data || {}) as RaceEventResultsByRound)
+				const nextResults = (data || {}) as RaceEventResultsByRound
+
+				if (showLastRoundOnly) {
+					const sortedRounds = sortRoundEntries(Object.entries(nextResults))
+					const lastRound = sortedRounds[0]
+					setResultsByRound(lastRound ? { [lastRound[0]]: lastRound[1] } : {})
+					return
+				}
+
+				setResultsByRound(nextResults)
 			})
 			.catch(() => {
 				setResultsByRound({})
@@ -56,7 +82,9 @@ export default function RaceEventRoundResults({
 			.finally(() => {
 				setIsLoading(false)
 			})
-	}, [eventId])
+	}, [eventId, showLastRoundOnly])
+
+	const orderedRounds = sortRoundEntries(Object.entries(resultsByRound))
 
 	return (
 		<Column className={className} style={{ maxWidth: width, width: '100%', ...style }} gap={3}>
@@ -72,7 +100,7 @@ export default function RaceEventRoundResults({
 				</ContentWithIcon>
 			)}
 
-			{!isLoading && Object.entries(resultsByRound).map(([roundName, classes]) => (
+			{!isLoading && orderedRounds.map(([roundName, classes]) => (
 				<RoundResultsSection key={roundName} roundName={roundName} classes={classes} />
 			))}
 		</Column>
