@@ -30,8 +30,10 @@ model LiveTimeEvent {
     id          Int             @id
     trackEvent  TrackEvent?
     name        String?
+    track       String?
     entries     Int?
     drivers     Int?
+    laps        Int?
     startedAt   DateTime?
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @default(now()) @updatedAt
