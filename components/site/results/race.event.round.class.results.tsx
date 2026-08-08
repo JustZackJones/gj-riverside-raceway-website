@@ -55,35 +55,37 @@ export default function RaceEventRoundClassResults({
 
 			{results.length > 0 && (
 				<>
-					<div
-						className="grid transition-all duration-300 ease-in-out"
-						style={{
-							gridTemplateRows: isCollapsed ? '0fr' : '1fr',
-							opacity: isCollapsed ? 0 : 1,
-						}}
-					>
-						<div className="overflow-hidden">
-							<Column gap={2}>
-								{results.map((result) => (
-									<RaceEventRoundClassDriverResults key={result.id} result={result} />
-								))}
-							</Column>
-						</div>
-					</div>
-
-					<div
-						className="grid transition-all duration-300 ease-in-out"
-						style={{
-							gridTemplateRows: isCollapsed && winner ? '1fr' : '0fr',
-							opacity: isCollapsed && winner ? 1 : 0,
-						}}
-					>
-						<div className="overflow-hidden">
-							{winner && (
-								<Column gap={1}>
-									<RaceEventRoundClassDriverResults result={winner} />
+					<div>
+						<div
+							className="grid transition-all duration-300 ease-in-out"
+							style={{
+								gridTemplateRows: isCollapsed ? '0fr' : '1fr',
+								opacity: isCollapsed ? 0 : 1,
+							}}
+						>
+							<div className="overflow-hidden">
+								<Column gap={2}>
+									{results.map((result) => (
+										<RaceEventRoundClassDriverResults key={result.id} result={result} />
+									))}
 								</Column>
-							)}
+							</div>
+						</div>
+
+						<div
+							className="grid transition-all duration-300 ease-in-out"
+							style={{
+								gridTemplateRows: isCollapsed && winner ? '1fr' : '0fr',
+								opacity: isCollapsed && winner ? 1 : 0,
+							}}
+						>
+							<div className="overflow-hidden">
+								{winner && (
+									<Column gap={1}>
+										<RaceEventRoundClassDriverResults result={winner} />
+									</Column>
+								)}
+							</div>
 						</div>
 					</div>
 				</>
