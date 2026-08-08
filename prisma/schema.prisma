@@ -43,15 +43,16 @@ model LiveTimeEvent {
 
 model LiveTimeEventRound {
   roundID         Int             @id
-    liveTimeEventID Int
-    liveTimeEvent   LiveTimeEvent   @relation(fields: [liveTimeEventID], references: [id])
-    name            String
+  liveTimeEventID Int
+  liveTimeEvent   LiveTimeEvent   @relation(fields: [liveTimeEventID], references: [id])
+  name            String
   type            String
   roundNumber     Int?
-    createdAt       DateTime        @default(now())
-    updatedAt       DateTime        @default(now()) @updatedAt
+  heats           LiveTimeEventRoundHeat[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
 
-    @@index([liveTimeEventID])
+  @@index([liveTimeEventID])
 }
 
 model LiveTimeEventEntry {
@@ -63,9 +64,34 @@ model LiveTimeEventEntry {
   driverName      String
   fullName        String?
   transponder     String?
+  roundHeats      LiveTimeEventRoundHeat[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
 
   @@index([liveTimeEventID])
   @@index([liveTimeEventID, className])
+}
+
+model LiveTimeEventRoundHeat {
+  id                Int                @id @default(autoincrement())
+  roundID           Int
+  round             LiveTimeEventRound @relation(fields: [roundID], references: [roundID])
+  liveTimeEventEntryID Int?
+  liveTimeEventEntry   LiveTimeEventEntry? @relation(fields: [liveTimeEventEntryID], references: [id])
+  raceResultID      Int?
+  className         String
+  raceNumber        Int
+  heatNumber        Int?
+  heatTotal         Int?
+  startingPosition  Int
+  carNumber         Int?
+  driverName        String
+  transponder       String?
+  seedNumber        Int?
+  seedResult        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+
+  @@index([roundID])
+  @@index([liveTimeEventEntryID])
 }
