@@ -9,7 +9,7 @@ export class ScrapedLiveTimeEventRoundHeat {
     heatTotal: number | null;
     startingPosition: number;
     carNumber: number | null;
-    driverName: string;
+    driverName: string | null;
     transponder: string | null;
     seedNumber: number | null;
     seedResult: string | null;
@@ -38,7 +38,7 @@ export class ScrapedLiveTimeEventRoundHeat {
         heatTotal?: number | null;
         startingPosition: number;
         carNumber?: number | null;
-        driverName: string;
+        driverName?: string | null;
         transponder?: string | null;
         seedNumber?: number | null;
         seedResult?: string | null;
@@ -52,7 +52,7 @@ export class ScrapedLiveTimeEventRoundHeat {
         this.heatTotal = heatTotal ?? null;
         this.startingPosition = startingPosition;
         this.carNumber = carNumber ?? null;
-        this.driverName = driverName;
+        this.driverName = driverName ?? null;
         this.transponder = transponder ?? null;
         this.seedNumber = seedNumber ?? null;
         this.seedResult = seedResult ?? null;

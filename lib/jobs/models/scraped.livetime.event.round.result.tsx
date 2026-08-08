@@ -8,7 +8,7 @@ export class ScrapedLiveTimeEventRoundResult {
     raceNumber: number | null;
     finishPosition: number;
     carNumber: number | null;
-    driverName: string;
+    driverName: string | null;
     driverLapDataID: number | null;
     qualifyingPosition: number | null;
     lapsTime: string | null;
@@ -53,7 +53,7 @@ export class ScrapedLiveTimeEventRoundResult {
         raceNumber?: number | null;
         finishPosition: number;
         carNumber?: number | null;
-        driverName: string;
+        driverName?: string | null;
         driverLapDataID?: number | null;
         qualifyingPosition?: number | null;
         lapsTime?: string | null;
@@ -75,7 +75,7 @@ export class ScrapedLiveTimeEventRoundResult {
         this.raceNumber = raceNumber ?? null;
         this.finishPosition = finishPosition;
         this.carNumber = carNumber ?? null;
-        this.driverName = driverName;
+        this.driverName = driverName ?? null;
         this.driverLapDataID = driverLapDataID ?? null;
         this.qualifyingPosition = qualifyingPosition ?? null;
         this.lapsTime = lapsTime ?? null;

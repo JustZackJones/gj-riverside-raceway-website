@@ -87,7 +87,7 @@ model LiveTimeEventRoundHeat {
   heatTotal         Int?
   startingPosition  Int
   carNumber         Int?
-  driverName        String
+  driverName        String?
   transponder       String?
   seedNumber        Int?
   seedResult        String?
@@ -110,7 +110,7 @@ model LiveTimeEventRoundResult {
   raceNumber          Int?
   finishPosition      Int
   carNumber           Int?
-  driverName          String
+  driverName          String?
   qualifyingPosition  Int?
   lapsTime            String?
   behind              String?
