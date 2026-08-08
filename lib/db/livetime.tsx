@@ -14,11 +14,20 @@ export default class LiveTimeEvents {
             where: { id },
         })
     }
-    static async getLastFinishedEvent(): Promise<LiveTimeEvent | null> {
+    static async getFirstEventBefore(date?: Date | null): Promise<LiveTimeEvent | null> {
         return prisma.liveTimeEvent.findFirst({
-            where: { startedAt: { lt: new Date() } },
+            where: { startedAt: { lt: date ? date : new Date() } },
             orderBy: { startedAt: 'desc' },
         })
+    }
+    static async getLastFinishedEvent(): Promise<LiveTimeEvent | null> {
+       return this.getFirstEventBefore(new Date());
+    }
+    static async getLastLastFinishedEvent(): Promise<LiveTimeEvent | null> {
+        const lastFinishedEvent = await this.getLastFinishedEvent();
+        if (!lastFinishedEvent) return null;
+        if (!lastFinishedEvent.startedAt) return null;
+        return this.getFirstEventBefore(lastFinishedEvent.startedAt);
     }
     static async create(data: Prisma.LiveTimeEventCreateInput): Promise<LiveTimeEvent> {
         return prisma.liveTimeEvent.create({ data })

@@ -32,4 +32,10 @@ export default class API {
         API.logger.info(`Fetching last finished event results from API... ${route}`);
         return await HTTP.GET(route)
     }
+
+    static async getLastFinishedEventWinners() {
+        const route = API.eventRoute(`last-finished/winners`)
+        API.logger.info(`Fetching last finished event winners from API... ${route}`);
+        return await HTTP.GET(route)
+    }
 }
