@@ -9,7 +9,6 @@ export class ScrapedLiveTimeEvent {
     entries: number;
     drivers: number;
     livetime_path: string;
-    laps: number;
 
     constructor(row: HTMLElement) {
         const cols = row.querySelectorAll('td');
@@ -34,7 +33,6 @@ export class ScrapedLiveTimeEvent {
         this.drivers = parseInt(cols[3]?.text.trim() || '0', 10);
 
         this.livetime_path = `${livetime.resultsPath}${this.event_id}`;
-        this.laps = 0;
     }
 
     toTrackEvent(): Prisma.TrackEventCreateInput {
@@ -53,13 +51,12 @@ export class ScrapedLiveTimeEvent {
             name: this.name,
             entries: this.entries,
             drivers: this.drivers,
-            laps: this.laps,
             startedAt: new Date(this.date),
             trackEvent: undefined
         }
     }
 
     toString(): string {
-        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, entries: ${this.entries}, drivers: ${this.drivers}, livetime_path: ${this.livetime_path}, laps: ${this.laps} }`;
+        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, entries: ${this.entries}, drivers: ${this.drivers}, livetime_path: ${this.livetime_path} }`;
     }
 }
