@@ -17,6 +17,11 @@ export default async function SyncLiveTimeEventsJob() {
         await LiveTimeEvents.upsert(event.event_id, event.toLiveTimeEvent());
     }
 
+    async function hydrateEventFromEventPage(event: ScrapedLiveTimeEvent): Promise<void> {
+        const eventPage = await ScraperUtils.scrapeAsHTML(livetime.getLink(event.livetime_path));
+        event.updateFromEventPage(eventPage);
+    }
+
     //Extracts events from the livetime page
     function extractEventsFromPage(root: HTMLElement): ScrapedLiveTimeEvent[] {
         logger.info(`Scraping LiveTimeRC events page...`);
@@ -40,6 +45,7 @@ export default async function SyncLiveTimeEventsJob() {
     async function upsertEvents(events: ScrapedLiveTimeEvent[]): Promise<void> {
         logger.info(`Upserting events into database...`);
         for (const event of events) {
+            await hydrateEventFromEventPage(event);
             await upsertLiveTimeEvent(event);
             await upsertTrackEvent(event);
             logger.info(`Upserted ${event.name} (LiveTime ID: ${event.event_id})`);
