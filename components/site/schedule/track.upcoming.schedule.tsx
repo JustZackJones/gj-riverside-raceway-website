@@ -9,7 +9,7 @@ import { facebook } from '@/content/content';
 export default function TrackUpcomingSchedule({className, style, width = "350px"}: {className?: string, style?: React.CSSProperties, width?: string}) {
     const [events, setEvents] = useState<ScheduleEvent[]>([])
     const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true);
-    useEffect(TrackScheduleUtils.getUpcomingScheduleEvents.bind(null, onUpcomingEventsLoaded, true, 4), [])
+    useEffect(TrackScheduleUtils.getUpcomingEventsEvents.bind(null, onUpcomingEventsLoaded, true, 4), [])
 
     function onUpcomingEventsLoaded(events: ScheduleEvent[]) {
         setEvents(events)

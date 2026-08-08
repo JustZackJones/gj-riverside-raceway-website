@@ -10,15 +10,26 @@ export default class API {
         return `${API.BASE_URL}${route}`
     }
 
-    static async getSchedule() {
-        const route = API.route('schedule')
-        API.logger.info(`Fetching schedule from API... ${route}`);
+    static eventRoute(route: string = '') {
+        if (route && !route.startsWith('/')) route = `/${route}`;
+        return API.route(`events${route}`)
+    }
+
+    static async getEvents() {
+        const route = API.eventRoute()
+        API.logger.info(`Fetching events from API... ${route}`);
         return await HTTP.GET(route)
     }
 
-    static async getUpcomingSchedule(includeCancelled: boolean = false, limit: number = 4) {
-        const route = API.route(`schedule/upcoming?includeCancelled=${includeCancelled}&limit=${limit}`)
-        API.logger.info(`Fetching upcoming schedule from API... ${route}`);
+    static async getUpcomingEvents(includeCancelled: boolean = false, limit: number = 4) {
+        const route = API.eventRoute(`upcoming?includeCancelled=${includeCancelled}&limit=${limit}`)
+        API.logger.info(`Fetching upcoming events from API... ${route}`);
+        return await HTTP.GET(route)
+    }
+
+    static async getLastFinishedEventResults() {
+        const route = API.eventRoute(`last-finished/results`)
+        API.logger.info(`Fetching last finished event results from API... ${route}`);
         return await HTTP.GET(route)
     }
 }

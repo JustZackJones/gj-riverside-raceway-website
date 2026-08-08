@@ -163,13 +163,13 @@ export default class TrackScheduleUtils {
     }
 
     static getAllScheduleEvents(setterCallback: (events: ScheduleEvent[]) => void): void {
-        API.getSchedule().then((data) => {
+        API.getEvents().then((data) => {
             TrackScheduleUtils.formatAndSetEvents(data, setterCallback);
         })
     }
 
-    static getUpcomingScheduleEvents(setterCallback: (events: ScheduleEvent[]) => void, includeCancelled: boolean = false, limit: number = 4): void {
-        API.getUpcomingSchedule(includeCancelled, limit).then((data) => {
+    static getUpcomingEventsEvents(setterCallback: (events: ScheduleEvent[]) => void, includeCancelled: boolean = false, limit: number = 4): void {
+        API.getUpcomingEvents(includeCancelled, limit).then((data) => {
             TrackScheduleUtils.formatAndSetEvents(data, setterCallback);
         })
     }

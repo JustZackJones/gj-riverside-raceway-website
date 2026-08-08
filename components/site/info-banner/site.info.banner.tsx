@@ -12,12 +12,12 @@ import { facebook } from '@/content/content'
 export default function SiteInfoBanner() {
     const [loading, setLoading] = useState<boolean>(true);
     const [nextEvent, setNextEvent] = useState<ScheduleEvent | null>(null);
-    useEffect(TrackScheduleUtils.getUpcomingScheduleEvents.bind(null, (event: ScheduleEvent[]) => {
+    useEffect(TrackScheduleUtils.getUpcomingEventsEvents.bind(null, (event: ScheduleEvent[]) => {
         setNextEvent(event[0] || null);
         setLoading(false);
     }, true, 1), []);
 
-    function SitePhone() { return (<SiteFaceBookMessageDisplayForPractice className="px-4"/>) }
+    function SiteFacebook() { return (<SiteFaceBookMessageDisplayForPractice className="px-4"/>) }
 
     function isLoading(): boolean                   { return loading; }
     function hasNextEvent(): boolean                { return nextEvent !== null; }
@@ -28,7 +28,7 @@ export default function SiteInfoBanner() {
     function hasRegisteringEventToday(): boolean    { return hasEventToday() && nextEvent?.status === 'registering'; }
 
     function loadingEventInfo() {
-        return <SiteInfoContent aIcon={`fa-solid fa-rotate fa-spin`} a={`Loading upcoming race...`} c={<SitePhone/>} />
+        return <SiteInfoContent aIcon={`fa-solid fa-rotate fa-spin`} a={`Loading upcoming race...`} c={<SiteFacebook/>} />
     }
 
     function RegisteringEventInfo() {
@@ -46,11 +46,11 @@ export default function SiteInfoBanner() {
 
     function NotTodayEventInfo() {
         let nextRaceDate = TimeUtils.getShortDateString(nextEvent!.start, false, true)
-        return <SiteInfoContent aIcon={nextEvent!.statusIcon} a={`Next race ${nextRaceDate}`} c={<SitePhone/>} />
+        return <SiteInfoContent aIcon={nextEvent!.statusIcon} a={`Next race ${nextRaceDate}`} c={<SiteFacebook/>} />
     }
 
     function DefaultInfo() {
-        return <SiteInfoContent aIcon={`fa-brands fa-facebook`} a={facebook.checkMeContent()} c={<SitePhone/>} />
+        return <SiteInfoContent aIcon={`fa-brands fa-facebook`} a={facebook.checkMeContent()} c={<SiteFacebook/>} />
     }
 
     function SiteInfo() {

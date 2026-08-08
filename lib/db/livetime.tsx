@@ -14,6 +14,12 @@ export default class LiveTimeEvents {
             where: { id },
         })
     }
+    static async getLastFinishedEvent(): Promise<LiveTimeEvent | null> {
+        return prisma.liveTimeEvent.findFirst({
+            where: { startedAt: { lt: new Date() } },
+            orderBy: { startedAt: 'desc' },
+        })
+    }
     static async create(data: Prisma.LiveTimeEventCreateInput): Promise<LiveTimeEvent> {
         return prisma.liveTimeEvent.create({ data })
     }
