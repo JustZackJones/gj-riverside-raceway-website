@@ -1,4 +1,5 @@
 import Events from "@/lib/db/events";
+import LiveTimeEventEntries from "@/lib/db/livetime.entries";
 import LiveTimeEvents from "@/lib/db/livetime";
 import LiveTimeEventRounds from "@/lib/db/livetime.rounds";
 import Logger from "@/lib/utils/logger";
@@ -25,9 +26,21 @@ export default async function SyncLiveTimeEventsJob() {
         );
     }
 
+    async function upsertLiveTimeEventEntries(event: ScrapedLiveTimeEvent): Promise<void> {
+        await LiveTimeEventEntries.replaceForEvent(
+            event.event_id,
+            event.eventEntries.map((entry) => entry.toLiveTimeEventEntry())
+        );
+    }
+
     async function hydrateEventFromEventPage(event: ScrapedLiveTimeEvent): Promise<void> {
         const eventPage = await ScraperUtils.scrapeAsHTML(livetime.getLink(event.livetime_path));
         event.updateFromEventPage(eventPage);
+
+        if (event.entry_list_path) {
+            const entryListPage = await ScraperUtils.scrapeAsHTML(livetime.getLink(event.entry_list_path));
+            event.updateEntriesFromEntryListPage(entryListPage);
+        }
     }
 
     //Extracts events from the livetime page
@@ -56,6 +69,7 @@ export default async function SyncLiveTimeEventsJob() {
             await hydrateEventFromEventPage(event);
             await upsertLiveTimeEvent(event);
             await upsertLiveTimeEventRounds(event);
+            await upsertLiveTimeEventEntries(event);
             await upsertTrackEvent(event);
             logger.info(`Upserted ${event.name} (LiveTime ID: ${event.event_id})`);
         }
