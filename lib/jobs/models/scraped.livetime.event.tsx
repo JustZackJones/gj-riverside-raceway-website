@@ -1,6 +1,7 @@
 import { HTMLElement } from 'node-html-parser';
 import { livetime } from "@/content/content";
 import { Prisma }  from "@prisma/client";
+import { ScrapedLiveTimeEventRound } from './scraped.livetime.event.round';
 
 export class ScrapedLiveTimeEvent {
     event_id: number;
@@ -11,6 +12,7 @@ export class ScrapedLiveTimeEvent {
     drivers: number;
     laps: number;
     livetime_path: string;
+    rounds: ScrapedLiveTimeEventRound[];
 
     constructor(row: HTMLElement) {
         const cols = row.querySelectorAll('td');
@@ -35,6 +37,7 @@ export class ScrapedLiveTimeEvent {
         this.drivers = parseInt(cols[3]?.text.trim() || '0', 10);
         this.track = '';
         this.laps = 0;
+        this.rounds = [];
 
         this.livetime_path = `${livetime.resultsPath}${this.event_id}`;
     }
@@ -62,6 +65,28 @@ export class ScrapedLiveTimeEvent {
         if (entryMatch) this.entries = parseInt(entryMatch[1].replace(/,/g, ''), 10) || this.entries;
         if (driverMatch) this.drivers = parseInt(driverMatch[1].replace(/,/g, ''), 10) || this.drivers;
         if (laps) this.laps = parseInt(laps.replace(/,/g, ''), 10) || 0;
+
+        this.rounds = root.querySelectorAll('a').flatMap((link) => {
+            const href = link.getAttribute('href') || '';
+            if (!href.includes('view_heat_sheet&id=')) return [];
+
+            const name = link.text.trim().replace(/\s+/g, ' ');
+            const qualifierMatch = name.match(/^Qualifier Round\s+(\d+)$/i);
+            const isMain = /^Main Events$/i.test(name);
+
+            if (!qualifierMatch && !isMain) return [];
+
+            const roundId = parseInt(href.split('&id=').pop() || '0', 10);
+            if (!roundId) return [];
+
+            return [new ScrapedLiveTimeEventRound({
+                roundID: roundId,
+                liveTimeEventID: this.event_id,
+                name,
+                type: qualifierMatch ? 'qualifier' : 'main',
+                roundNumber: qualifierMatch ? parseInt(qualifierMatch[1], 10) : null,
+            })];
+        });
     }
 
     toTrackEvent(): Prisma.TrackEventCreateInput {
@@ -88,6 +113,6 @@ export class ScrapedLiveTimeEvent {
     }
 
     toString(): string {
-        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, track: ${this.track}, entries: ${this.entries}, drivers: ${this.drivers}, laps: ${this.laps}, livetime_path: ${this.livetime_path} }`;
+        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, track: ${this.track}, entries: ${this.entries}, drivers: ${this.drivers}, laps: ${this.laps}, livetime_path: ${this.livetime_path}, rounds: ${this.rounds.length} }`;
     }
 }

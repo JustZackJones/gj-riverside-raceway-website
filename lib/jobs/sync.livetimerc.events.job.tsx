@@ -1,5 +1,6 @@
 import Events from "@/lib/db/events";
 import LiveTimeEvents from "@/lib/db/livetime";
+import LiveTimeEventRounds from "@/lib/db/livetime.rounds";
 import Logger from "@/lib/utils/logger";
 import { livetime } from "@/content/content";
 import { HTMLElement } from 'node-html-parser';
@@ -15,6 +16,13 @@ export default async function SyncLiveTimeEventsJob() {
 
     async function upsertLiveTimeEvent(event: ScrapedLiveTimeEvent): Promise<void> {
         await LiveTimeEvents.upsert(event.event_id, event.toLiveTimeEvent());
+    }
+
+    async function upsertLiveTimeEventRounds(event: ScrapedLiveTimeEvent): Promise<void> {
+        await LiveTimeEventRounds.replaceForEvent(
+            event.event_id,
+            event.rounds.map((round) => round.toLiveTimeEventRound())
+        );
     }
 
     async function hydrateEventFromEventPage(event: ScrapedLiveTimeEvent): Promise<void> {
@@ -47,6 +55,7 @@ export default async function SyncLiveTimeEventsJob() {
         for (const event of events) {
             await hydrateEventFromEventPage(event);
             await upsertLiveTimeEvent(event);
+            await upsertLiveTimeEventRounds(event);
             await upsertTrackEvent(event);
             logger.info(`Upserted ${event.name} (LiveTime ID: ${event.event_id})`);
         }
