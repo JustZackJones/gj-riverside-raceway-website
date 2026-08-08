@@ -11,6 +11,7 @@ import RaceAgenda from '@/components/site/agenda/race.agenda'
 import RaceClasses from '@/components/site/classes/race.classes'
 import SiteInfoBanner from '@/components/site/info-banner/site.info.banner'
 import RaceAwards from '@/components/site/awards/race.awards'
+import RaceEventRoundResults from '@/components/site/results/race.event.round.results'
 
 export default function Home() {
 
@@ -25,7 +26,7 @@ export default function Home() {
     function checkQueryParam(param: string, readValue: boolean): string | boolean | null {
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
-            if (readValue) params.get(param);
+            if (readValue) return params.get(param);
             return params.has(param);
         } else {
             if (readValue) return null;
@@ -36,6 +37,14 @@ export default function Home() {
     function getQueryParam(param: string) { return checkQueryParam(param, true); }
 
     function hasQueryParam(param: string) { return checkQueryParam(param, false); }
+
+    function getResultsEventId(): number | null {
+        const value = getQueryParam('results');
+        if (typeof value !== 'string') return null;
+
+        const eventId = parseInt(value, 10);
+        return Number.isFinite(eventId) ? eventId : null;
+    }
 
     function withAwards() { return hasQueryParam('awards');}
 
@@ -50,6 +59,8 @@ export default function Home() {
 
     // Main body of the home page
     function SiteHomeBody() {
+        const resultsEventId = getResultsEventId();
+
         return (
             <>
                 {/* Home page banner is identical for any screen size*/}
@@ -107,6 +118,16 @@ export default function Home() {
                         </FullWidthRow>
                         )}
                     </div>
+
+                    {resultsEventId !== null && (
+                    <FullWidthRow className={`race-results ${getNextRowClass()}`}>
+                        <RaceEventRoundResults
+                            eventId={resultsEventId}
+                            width="1100px"
+                            style={{margin: '0px auto'}}
+                        />
+                    </FullWidthRow>
+                    )}
 
                     {/* Socials Container is identical for any screen size*/}
                     <FullWidthRow className="track-socials">

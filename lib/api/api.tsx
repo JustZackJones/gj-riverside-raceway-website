@@ -27,6 +27,12 @@ export default class API {
         return await HTTP.GET(route)
     }
 
+    static async getEventResults(eventId: number) {
+        const route = API.eventRoute(`results/${eventId}`)
+        API.logger.info(`Fetching event results from API... ${route}`);
+        return await HTTP.GET(route)
+    }
+
     static async getLastFinishedEventResults() {
         const route = API.eventRoute(`last-finished/results`)
         API.logger.info(`Fetching last finished event results from API... ${route}`);
