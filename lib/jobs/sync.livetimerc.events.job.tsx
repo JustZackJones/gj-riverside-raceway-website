@@ -117,6 +117,29 @@ export default async function SyncLiveTimeEventsJob() {
         };
     }
 
+    function parseLapsAndTime(value: string | null): { laps: number | null; totalTime: string | null } {
+        if (!value) return { laps: null, totalTime: null };
+
+        const cleaned = value.trim();
+        if (!cleaned) return { laps: null, totalTime: null };
+
+        const parts = cleaned.split('/');
+        if (parts.length >= 2) {
+            const laps = parseInt(parts[0].trim(), 10);
+            const totalTime = parts.slice(1).join('/').trim();
+            return {
+                laps: Number.isFinite(laps) ? laps : null,
+                totalTime: totalTime || null,
+            };
+        }
+
+        if (/^\d+$/.test(cleaned)) {
+            return { laps: parseInt(cleaned, 10), totalTime: null };
+        }
+
+        return { laps: null, totalTime: cleaned };
+    }
+
     function parseRoundHeatsFromPage(
         roundID: number,
         root: HTMLElement,
@@ -219,7 +242,7 @@ export default async function SyncLiveTimeEventsJob() {
             const carNumber = parseInt(cols[1]?.querySelector('.car_num')?.text.trim() || '0', 10) || null;
             const driverLapDataID = parseInt(cols[1]?.querySelector('a.driver_laps')?.getAttribute('data-driver-id') || '0', 10) || null;
             const qualifyingPosition = parseInt(cols[2]?.text.trim() || '0', 10) || null;
-            const lapsTime = cols[3]?.text.trim() || null;
+            const { laps, totalTime } = parseLapsAndTime(cols[3]?.text.trim() || null);
             const behind = cols[4]?.text.trim() || null;
             const { fastestLap, fastestLapNumber } = parseFastestLap(cols[5]);
             const avgLap = cols[6]?.text.trim() || null;
@@ -257,7 +280,8 @@ export default async function SyncLiveTimeEventsJob() {
                 driverName: driverNameToStore,
                 driverLapDataID,
                 qualifyingPosition,
-                lapsTime,
+                laps,
+                totalTime,
                 behind,
                 fastestLap,
                 fastestLapNumber,

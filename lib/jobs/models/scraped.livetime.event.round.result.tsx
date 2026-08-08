@@ -11,7 +11,8 @@ export class ScrapedLiveTimeEventRoundResult {
     driverName: string | null;
     driverLapDataID: number | null;
     qualifyingPosition: number | null;
-    lapsTime: string | null;
+    laps: number | null;
+    totalTime: string | null;
     behind: string | null;
     fastestLap: string | null;
     fastestLapNumber: number | null;
@@ -34,7 +35,8 @@ export class ScrapedLiveTimeEventRoundResult {
         driverName,
         driverLapDataID,
         qualifyingPosition,
-        lapsTime,
+        laps,
+        totalTime,
         behind,
         fastestLap,
         fastestLapNumber,
@@ -56,7 +58,8 @@ export class ScrapedLiveTimeEventRoundResult {
         driverName?: string | null;
         driverLapDataID?: number | null;
         qualifyingPosition?: number | null;
-        lapsTime?: string | null;
+        laps?: number | null;
+        totalTime?: string | null;
         behind?: string | null;
         fastestLap?: string | null;
         fastestLapNumber?: number | null;
@@ -78,7 +81,8 @@ export class ScrapedLiveTimeEventRoundResult {
         this.driverName = driverName ?? null;
         this.driverLapDataID = driverLapDataID ?? null;
         this.qualifyingPosition = qualifyingPosition ?? null;
-        this.lapsTime = lapsTime ?? null;
+        this.laps = laps ?? null;
+        this.totalTime = totalTime ?? null;
         this.behind = behind ?? null;
         this.fastestLap = fastestLap ?? null;
         this.fastestLapNumber = fastestLapNumber ?? null;
@@ -103,7 +107,8 @@ export class ScrapedLiveTimeEventRoundResult {
             driverName: this.driverName,
             driverLapDataID: this.driverLapDataID,
             qualifyingPosition: this.qualifyingPosition,
-            lapsTime: this.lapsTime,
+            laps: this.laps,
+            totalTime: this.totalTime,
             behind: this.behind,
             fastestLap: this.fastestLap,
             fastestLapNumber: this.fastestLapNumber,

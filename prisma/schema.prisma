@@ -112,7 +112,8 @@ model LiveTimeEventRoundResult {
   carNumber           Int?
   driverName          String?
   qualifyingPosition  Int?
-  lapsTime            String?
+  laps                Int?
+  totalTime           String?
   behind              String?
   fastestLap          String?
   fastestLapNumber    Int?
