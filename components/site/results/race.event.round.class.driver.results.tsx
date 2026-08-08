@@ -86,7 +86,7 @@ export default function RaceEventRoundClassDriverResults({
 			fullWidth
 			align="center"
 			justify="between"
-			className="rounded border border-gray-300 bg-white px-1.5 py-1.5 sm:px-0 sm:py-2"
+			className="rounded border border-gray-300 bg-white px-1.5 py-1.5"
 		>
 			<Row align="center" gap={1} className="min-w-0 flex-1 sm:gap-1">
 				<Chip className="bg-black px-1 py-0.5 text-[10px] sm:text-sm font-mono font-semibold text-white" width="34px">
