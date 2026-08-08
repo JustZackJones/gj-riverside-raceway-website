@@ -42,7 +42,7 @@ export default class Events {
         return prisma.trackEvent.delete({ where: { id } })
     }
 
-    static async getPrevious(includeCancelled: boolean = false, limit?: number, sort: SortOrder = 'desc', orderBy: TrackEventOrderBy = 'start'): Promise<TrackEventWithLiveTime[]> {
+    static async getPrevious(includeCancelled: boolean = false, limit: number = 10, sort: SortOrder = 'desc', orderBy: TrackEventOrderBy = 'start'): Promise<TrackEventWithLiveTime[]> {
         let todayAtMidnight = new Date()
         todayAtMidnight.setHours(0, 0, 0, 0)
         return prisma.trackEvent.findMany({
@@ -58,7 +58,7 @@ export default class Events {
     }
 
     //Business Logic for events
-    static async getUpcoming(includeCancelled: boolean = false, limit?: number, sort: SortOrder = 'asc', orderBy: TrackEventOrderBy = 'start'): Promise<TrackEventWithLiveTime[]> {
+    static async getUpcoming(includeCancelled: boolean = false, limit: number = 10, sort: SortOrder = 'asc', orderBy: TrackEventOrderBy = 'start'): Promise<TrackEventWithLiveTime[]> {
         let todayAtMidnight = new Date()
         todayAtMidnight.setHours(0, 0, 0, 0)
         return prisma.trackEvent.findMany({
