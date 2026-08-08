@@ -4,7 +4,7 @@ import { Column, ContentWithIcon, Row } from '@/components/ui/ui'
 import TrackScheduleUtils, { ScheduleEvent } from '@/lib/utils/track.schedule.utils'
 import { useState, useEffect } from 'react'
 import TimeUtils from '@/lib/utils/time'
-import { SitePhoneDisplayForPractice } from '../site.phone.display'
+import { SiteFaceBookMessageDisplayForPractice } from '../site.facebook.message.display'
 import SiteInfoContent from './site.info.content'
 import LiveTimeEventButton from '../buttons/livetime.event.button'
 import { facebook } from '@/content/content'
@@ -17,7 +17,7 @@ export default function SiteInfoBanner() {
         setLoading(false);
     }, true, 1), []);
 
-    function SitePhone() { return (<SitePhoneDisplayForPractice className="px-4"/>) }
+    function SitePhone() { return (<SiteFaceBookMessageDisplayForPractice className="px-4"/>) }
 
     function isLoading(): boolean                   { return loading; }
     function hasNextEvent(): boolean                { return nextEvent !== null; }
