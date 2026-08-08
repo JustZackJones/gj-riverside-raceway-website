@@ -49,6 +49,7 @@ model LiveTimeEventRound {
   type            String
   roundNumber     Int?
   heats           LiveTimeEventRoundHeat[]
+  results         LiveTimeEventRoundResult[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
 
@@ -65,6 +66,7 @@ model LiveTimeEventEntry {
   fullName        String?
   transponder     String?
   roundHeats      LiveTimeEventRoundHeat[]
+  roundResults    LiveTimeEventRoundResult[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
 
@@ -94,4 +96,37 @@ model LiveTimeEventRoundHeat {
 
   @@index([roundID])
   @@index([liveTimeEventEntryID])
+}
+
+model LiveTimeEventRoundResult {
+  id                  Int                @id @default(autoincrement())
+  roundID             Int
+  round               LiveTimeEventRound @relation(fields: [roundID], references: [roundID])
+  liveTimeEventEntryID Int?
+  liveTimeEventEntry   LiveTimeEventEntry? @relation(fields: [liveTimeEventEntryID], references: [id])
+  raceResultID        Int
+  driverLapDataID     Int?
+  className           String
+  raceNumber          Int?
+  finishPosition      Int
+  carNumber           Int?
+  driverName          String
+  qualifyingPosition  Int?
+  lapsTime            String?
+  behind              String?
+  fastestLap          String?
+  fastestLapNumber    Int?
+  avgLap              String?
+  avgTop5             String?
+  avgTop10            String?
+  avgTop15            String?
+  top3Consecutive     String?
+  stdDeviation        String?
+  consistency         String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @default(now()) @updatedAt
+
+  @@index([roundID])
+  @@index([liveTimeEventEntryID])
+  @@index([raceResultID])
 }

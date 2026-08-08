@@ -2,6 +2,7 @@ import Events from "@/lib/db/events";
 import LiveTimeEventEntries from "@/lib/db/livetime.entries";
 import LiveTimeEvents from "@/lib/db/livetime";
 import LiveTimeEventRoundHeats from "@/lib/db/livetime.round.heats";
+import LiveTimeEventRoundResults from "@/lib/db/livetime.round.results";
 import LiveTimeEventRounds from "@/lib/db/livetime.rounds";
 import { LiveTimeEventEntry } from "@prisma/client";
 import Logger from "@/lib/utils/logger";
@@ -10,6 +11,7 @@ import { HTMLElement } from 'node-html-parser';
 import { ScraperUtils } from "../utils/scraper.utils";
 import { ScrapedLiveTimeEvent } from "@/lib/jobs/models/scraped.livetime.event";
 import { ScrapedLiveTimeEventRoundHeat } from "@/lib/jobs/models/scraped.livetime.event.round.heat";
+import { ScrapedLiveTimeEventRoundResult } from "@/lib/jobs/models/scraped.livetime.event.round.result";
 
 export default async function SyncLiveTimeEventsJob() {
     const logger: Logger = new Logger('SyncLiveTimeEventsJob');
@@ -47,6 +49,49 @@ export default async function SyncLiveTimeEventsJob() {
             heatNumber: parseInt(match[2], 10),
             heatTotal: parseInt(match[3], 10),
         };
+    }
+
+    function stripMainSuffix(rawClassName: string): string {
+        return rawClassName.replace(/\s+[A-Z]-Main\s*$/i, '').trim();
+    }
+
+    function parseFastestLap(cell: HTMLElement | undefined): { fastestLap: string | null; fastestLapNumber: number | null } {
+        const cleaned = cell?.text.trim() || '';
+        if (!cleaned) return { fastestLap: null, fastestLapNumber: null };
+
+        const lapNumberText = cell?.querySelector('sup')?.text.trim() || '';
+        const lapNumber = lapNumberText ? parseInt(lapNumberText, 10) || null : null;
+        const lapValue = lapNumberText ? cleaned.replace(lapNumberText, '').trim() : cleaned;
+
+        if (lapNumber || lapValue) {
+            return {
+                fastestLap: lapValue || null,
+                fastestLapNumber: lapNumber,
+            };
+        }
+
+        const match = cleaned.match(/^([0-9.]+)(?:\s*(\d+))?$/);
+        if (!match) return { fastestLap: cleaned, fastestLapNumber: null };
+
+        return {
+            fastestLap: match[1] || null,
+            fastestLapNumber: match[2] ? parseInt(match[2], 10) : null,
+        };
+    }
+
+    function resolveEntryLink(
+        eventEntries: LiveTimeEventEntry[],
+        className: string,
+        driverName: string
+    ): LiveTimeEventEntry | null {
+        const classCandidates = [className, stripMainSuffix(className)].map((name) => name.toLowerCase());
+
+        const matchingEntries = eventEntries.filter((entry) =>
+            classCandidates.includes(entry.className.toLowerCase())
+            && entry.driverName.toLowerCase() === driverName.toLowerCase()
+        );
+
+        return matchingEntries.length === 1 ? matchingEntries[0] : null;
     }
 
     function parseRoundHeatsFromPage(
@@ -102,11 +147,7 @@ export default async function SyncLiveTimeEventsJob() {
 
             if (!startingPosition || !driverName) continue;
 
-            const matchingEntries = eventEntries.filter((entry) =>
-                entry.className.toLowerCase() === currentClassName.toLowerCase()
-                && entry.driverName.toLowerCase() === driverName.toLowerCase()
-            );
-            const linkedEntry = matchingEntries.length === 1 ? matchingEntries[0] : null;
+            const linkedEntry = resolveEntryLink(eventEntries, currentClassName, driverName);
 
             heatRows.push(new ScrapedLiveTimeEventRoundHeat({
                 roundID,
@@ -128,6 +169,93 @@ export default async function SyncLiveTimeEventsJob() {
         return heatRows;
     }
 
+    function parseRoundResultsFromPage(
+        roundID: number,
+        raceResultID: number,
+        root: HTMLElement,
+        eventEntries: LiveTimeEventEntry[]
+    ): ScrapedLiveTimeEventRoundResult[] {
+        const classHeaderText = root.querySelector('table.race_result .class_header')?.text.trim() || '';
+        const raceNumberText = root.querySelector('table.race_result .race_num')?.text.trim() || '';
+        const raceNumber = parseInt(raceNumberText || '0', 10) || null;
+
+        if (!classHeaderText) return [];
+
+        return root.querySelectorAll('table.race_result tbody tr').flatMap((row) => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length < 13) return [];
+
+            const finishPosition = parseInt(cols[0]?.text.trim() || '0', 10);
+            const driverName = cols[1]?.querySelector('.driver_name')?.text.trim() || '';
+            const carNumber = parseInt(cols[1]?.querySelector('.car_num')?.text.trim() || '0', 10) || null;
+            const driverLapDataID = parseInt(cols[1]?.querySelector('a.driver_laps')?.getAttribute('data-driver-id') || '0', 10) || null;
+            const qualifyingPosition = parseInt(cols[2]?.text.trim() || '0', 10) || null;
+            const lapsTime = cols[3]?.text.trim() || null;
+            const behind = cols[4]?.text.trim() || null;
+            const { fastestLap, fastestLapNumber } = parseFastestLap(cols[5]);
+            const avgLap = cols[6]?.text.trim() || null;
+            const avgTop5 = cols[7]?.text.trim() || null;
+            const avgTop10 = cols[8]?.text.trim() || null;
+            const avgTop15 = cols[9]?.text.trim() || null;
+            const top3Consecutive = cols[10]?.text.trim() || null;
+            const stdDeviation = cols[11]?.text.trim() || null;
+            const consistency = cols[12]?.text.trim() || null;
+
+            if (!finishPosition || !driverName) return [];
+
+            const linkedEntry = resolveEntryLink(eventEntries, classHeaderText, driverName);
+
+            return [new ScrapedLiveTimeEventRoundResult({
+                roundID,
+                liveTimeEventEntryID: linkedEntry?.id ?? null,
+                raceResultID,
+                className: classHeaderText,
+                raceNumber,
+                finishPosition,
+                carNumber,
+                driverName,
+                driverLapDataID,
+                qualifyingPosition,
+                lapsTime,
+                behind,
+                fastestLap,
+                fastestLapNumber,
+                avgLap,
+                avgTop5,
+                avgTop10,
+                avgTop15,
+                top3Consecutive,
+                stdDeviation,
+                consistency,
+            })];
+        });
+    }
+
+    async function upsertRoundResults(
+        roundID: number,
+        raceResultIDs: number[],
+        eventEntries: LiveTimeEventEntry[]
+    ): Promise<void> {
+        const uniqueRaceResultIDs = [...new Set(raceResultIDs.filter((id) => id > 0))];
+        const allRows: ScrapedLiveTimeEventRoundResult[] = [];
+
+        for (const raceResultID of uniqueRaceResultIDs) {
+            try {
+                const raceResultPageUrl = livetime.getLink(`/results/?p=view_race_result&id=${raceResultID}`);
+                const raceResultPage = await ScraperUtils.scrapeAsHTML(raceResultPageUrl);
+                const parsed = parseRoundResultsFromPage(roundID, raceResultID, raceResultPage, eventEntries);
+                allRows.push(...parsed);
+            } catch (error) {
+                logger.warn(`Failed to sync race result rows for race result ${raceResultID}: ${error}`);
+            }
+        }
+
+        await LiveTimeEventRoundResults.replaceForRound(
+            roundID,
+            allRows.map((row) => row.toLiveTimeEventRoundResult())
+        );
+    }
+
     async function upsertRoundHeats(event: ScrapedLiveTimeEvent): Promise<void> {
         const persistedEntries = await LiveTimeEventEntries.getByEventId(event.event_id);
 
@@ -139,6 +267,12 @@ export default async function SyncLiveTimeEventsJob() {
                 await LiveTimeEventRoundHeats.replaceForRound(
                     round.roundID,
                     heatRows.map((heatRow) => heatRow.toLiveTimeEventRoundHeat())
+                );
+
+                await upsertRoundResults(
+                    round.roundID,
+                    heatRows.map((heatRow) => heatRow.raceResultID || 0),
+                    persistedEntries
                 );
             } catch (error) {
                 logger.warn(`Failed to sync heat rows for round ${round.roundID}: ${error}`);
