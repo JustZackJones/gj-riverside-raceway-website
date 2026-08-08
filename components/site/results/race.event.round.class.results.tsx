@@ -33,7 +33,14 @@ export default function RaceEventRoundClassResults({
 				style={{ userSelect: 'none' }}
 			>
 				<Row justify="between" align="center" className="w-full gap-2">
-					<BriefContentHeader icon="fa-solid fa-flag-checkered">{className}</BriefContentHeader>
+					<Row align="center" gap={1} className="min-w-0 flex-1">
+						<span className="flex items-center justify-center text-sm sm:text-2xl">
+							<i className="fa-solid fa-flag-checkered" />
+						</span>
+						<span className="min-w-0 truncate text-base sm:text-2xl font-bold underline">
+							{className}
+						</span>
+					</Row>
 					<span className="flex w-8 flex-shrink-0 items-center justify-center text-gray-600">
 						<i className={`fa-solid ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'} transition-transform duration-300`} />
 					</span>

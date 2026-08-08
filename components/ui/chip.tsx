@@ -12,7 +12,7 @@ interface ChipProps {
  */
 export default function Chip({ children, className = '', style, width = '75px' }: ChipProps) {
     return (
-        <span className={`${className} rounded text-sm mr-2 flex items-center justify-center`} style={{ minWidth: width, ...style }}>
+        <span className={`${className} rounded text-sm mr-1 sm:mr-1 flex items-center justify-center`} style={{ minWidth: width, ...style }}>
             {children}
         </span>
     );

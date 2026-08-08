@@ -59,7 +59,7 @@ function formatLaps(value: number | null, compact: boolean): string {
 }
 
 const desktopMetricChipWidth = 'unset'
-const driverInfoWidthClass = 'w-[112px] sm:w-[180px]'
+const driverInfoWidthClass = 'w-[78px] sm:w-[180px]'
 
 function ResponsiveMetricText({
 	mobile,
@@ -86,15 +86,15 @@ export default function RaceEventRoundClassDriverResults({
 			fullWidth
 			align="center"
 			justify="between"
-			className="rounded border border-gray-300 bg-white px-3 py-2"
+			className="rounded border border-gray-300 bg-white px-1.5 py-1.5 sm:px-0 sm:py-2"
 		>
-			<Row align="center" gap={2} className="min-w-0 flex-1">
-				<Chip className="bg-black px-2 py-1 font-mono font-semibold text-white" width="42px">
+			<Row align="center" gap={1} className="min-w-0 flex-1 sm:gap-1">
+				<Chip className="bg-black px-1 py-0.5 text-[10px] sm:text-sm font-mono font-semibold text-white" width="34px">
 					P{result.finishPosition}
 				</Chip>
 
 				<Column className={`min-w-0 ${driverInfoWidthClass}`} gap={0}>
-					<span className="truncate text-sm font-semibold">
+					<span className="truncate text-[10px] leading-tight sm:text-sm font-semibold">
 						{result.driverName || 'Unknown Driver'}
 					</span>
 					<span className="hidden text-xs text-gray-500 sm:inline">
@@ -104,29 +104,29 @@ export default function RaceEventRoundClassDriverResults({
 				</Column>
 			</Row>
 
-			<Row align="center" justify="end" gap={0.6125} className="flex-wrap">
-				<Chip className="min-w-[82px] sm:min-w-[110px] bg-gray-200 px-2 py-1 font-mono text-black" width={desktopMetricChipWidth}>
+			<Row align="center" justify="end" gap={0} className="flex-wrap sm:gap-1">
+				<Chip className="min-w-[58px] sm:min-w-[110px] bg-gray-200 px-1 py-0.5 sm:px-2 sm:py-1 text-[10px] sm:text-sm font-mono text-black" width={desktopMetricChipWidth}>
 					<i className="fa-solid fa-road mr-1" />
 					<ResponsiveMetricText
 						mobile={formatLaps(result.laps, true)}
 						desktop={formatLaps(result.laps, false)}
 					/>
 				</Chip>
-				<Chip className="min-w-[82px] sm:min-w-[110px] bg-red-600 px-2 py-1 font-mono font-semibold text-white" width={desktopMetricChipWidth}>
+				<Chip className="min-w-[58px] sm:min-w-[110px] bg-red-600 px-1 py-0.5 sm:px-2 sm:py-1 text-[10px] sm:text-sm font-mono font-semibold text-white" width={desktopMetricChipWidth}>
 					<i className="fa-solid fa-stopwatch mr-1" />
 					<ResponsiveMetricText
 						mobile={formatSeconds(result.totalTime, 2)}
 						desktop={formatSeconds(result.totalTime)}
 					/>
 				</Chip>
-				<Chip className="min-w-[82px] sm:min-w-[110px] bg-yellow-500 px-2 py-1 font-mono font-semibold text-black" width={desktopMetricChipWidth}>
+				<Chip className="min-w-[58px] sm:min-w-[110px] bg-yellow-500 px-1 py-0.5 sm:px-2 sm:py-1 text-[10px] sm:text-sm font-mono font-semibold text-black" width={desktopMetricChipWidth}>
 					<i className="fa-solid fa-bolt mr-1" />
 					<ResponsiveMetricText
 						mobile={formatSeconds(result.fastestLap, 2)}
 						desktop={formatSeconds(result.fastestLap)}
 					/>
 				</Chip>
-				<Chip className="min-w-[82px] sm:min-w-[110px] bg-blue-600 px-2 py-1 font-mono font-semibold text-white" width={desktopMetricChipWidth}>
+				<Chip className="min-w-[58px] sm:min-w-[110px] bg-blue-600 px-1 py-0.5 sm:px-2 sm:py-1 text-[10px] sm:text-sm font-mono font-semibold text-white" width={desktopMetricChipWidth}>
 					<i className="fa-solid fa-chart-line mr-1" />
 					<ResponsiveMetricText
 						mobile={formatConsistency(result.consistency)}
