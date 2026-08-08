@@ -27,6 +27,15 @@ export default class API {
         return await HTTP.GET(route)
     }
 
+    static async getPreviousEvents(includeCancelled: boolean = false, limit?: number) {
+        let route = API.eventRoute(`previous?includeCancelled=${includeCancelled}`)
+        if (typeof limit === 'number') {
+            route = `${route}&limit=${limit}`
+        }
+        API.logger.info(`Fetching previous events from API... ${route}`);
+        return await HTTP.GET(route)
+    }
+
     static async getEventResults(eventId: number) {
         const route = API.eventRoute(`results/${eventId}`)
         API.logger.info(`Fetching event results from API... ${route}`);

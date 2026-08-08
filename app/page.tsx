@@ -11,8 +11,7 @@ import RaceAgenda from '@/components/site/agenda/race.agenda'
 import RaceClasses from '@/components/site/classes/race.classes'
 import SiteInfoBanner from '@/components/site/info-banner/site.info.banner'
 import RaceAwards from '@/components/site/awards/race.awards'
-import RaceEventRoundResults from '@/components/site/results/race.event.round.results'
-import RaceEventWinners from '@/components/site/results/race.event.winners'
+import RaceEventRoundClassSelector from '@/components/site/results/race.event.round.class.selector'
 
 export default function Home() {
 
@@ -120,27 +119,13 @@ export default function Home() {
                         )}
                     </div>
 
-                    {resultsEventId !== null && (
-                        <>
                     <FullWidthRow className={`race-results ${getNextRowClass()}`}>
-                        <RaceEventRoundResults
-                            eventId={resultsEventId}
-                            width="1100px"
-                            style={{margin: '0px auto'}}
-                            showLastRoundOnly
-                            startCollapsed
+                        <RaceEventRoundClassSelector
+                            initialEventId={resultsEventId ?? undefined}
+                            width="100%"
+                            style={{margin: '0px auto', maxWidth: '1100px'}}
                         />
                     </FullWidthRow>
-                    <FullWidthRow className={`race-results ${getNextRowClass()}`}>
-                        <RaceEventWinners 
-                            eventId={resultsEventId}
-                            width="1100px"
-                            style={{margin: '0px auto'}}
-                            showLastRoundOnly
-                        />
-                    </FullWidthRow>
-                    </>
-                    )}
 
                     {/* Socials Container is identical for any screen size*/}
                     <FullWidthRow className="track-socials">

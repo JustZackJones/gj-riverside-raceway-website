@@ -1,0 +1,234 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import BriefContentHeader from '@/components/site/brief/brief.content.header'
+import RaceEventRoundClassResults from '@/components/site/results/race.event.round.class.results'
+import { RaceEventDriverResult } from '@/components/site/results/race.event.round.class.driver.results'
+import { Column, ContentWithIcon } from '@/components/ui/ui'
+import API from '@/lib/api/api'
+
+type RaceEventRoundResultsByClass = Record<string, RaceEventDriverResult[]>
+type RaceEventResultsByRound = Record<string, RaceEventRoundResultsByClass>
+
+type SelectableEvent = {
+	id: number
+	livetimeID?: number | null
+	name: string
+	start?: string | Date | null
+	liveTimeEvent?: {
+		name?: string | null
+	} | null
+}
+
+function getRoundPriority(roundName: string): number {
+	if (/^main events$/i.test(roundName.trim())) return 1000
+
+	const qualifierMatch = roundName.match(/^qualifier round\s+(\d+)$/i)
+	if (qualifierMatch) {
+		return parseInt(qualifierMatch[1], 10)
+	}
+
+	return -1
+}
+
+function sortRoundNames(roundNames: string[]): string[] {
+	return [...roundNames].sort((leftName, rightName) => getRoundPriority(rightName) - getRoundPriority(leftName))
+}
+
+function getEventDisplayName(event: SelectableEvent): string {
+	return event.name || event.liveTimeEvent?.name || `Event #${event.id}`
+}
+
+function getEventDisplayLabel(event: SelectableEvent): string {
+	return getEventDisplayName(event)
+}
+
+export default function RaceEventRoundClassSelector({
+	initialEventId,
+	className,
+	style,
+	width = '1100px',
+	startCollapsed = false,
+}: {
+	initialEventId?: number
+	className?: string
+	style?: React.CSSProperties
+	width?: string
+	startCollapsed?: boolean
+}) {
+	const [events, setEvents] = useState<SelectableEvent[]>([])
+	const [selectedLiveTimeEventId, setSelectedLiveTimeEventId] = useState<number | null>(null)
+	const [resultsByRound, setResultsByRound] = useState<RaceEventResultsByRound>({})
+	const [selectedRoundName, setSelectedRoundName] = useState<string>('')
+	const [selectedClassName, setSelectedClassName] = useState<string>('')
+	const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true)
+	const [isLoadingResults, setIsLoadingResults] = useState<boolean>(false)
+	const eventsWithLiveTimeId = useMemo(() => events.filter((event) => typeof event.livetimeID === 'number'), [events])
+
+	useEffect(() => {
+		setIsLoadingEvents(true)
+
+		API.getPreviousEvents(false)
+			.then((data) => {
+				const nextEvents = (Array.isArray(data) ? data : []) as SelectableEvent[]
+				setEvents(nextEvents)
+
+				if (nextEvents.length === 0) {
+					setSelectedLiveTimeEventId(null)
+					return
+				}
+
+				const matchingInitial = typeof initialEventId === 'number'
+					? nextEvents.find((event) => event.livetimeID === initialEventId)
+					: null
+
+				const fallbackEvent = nextEvents.find((event) => typeof event.livetimeID === 'number') || null
+				setSelectedLiveTimeEventId(matchingInitial?.livetimeID ?? fallbackEvent?.livetimeID ?? null)
+			})
+			.catch(() => {
+				setEvents([])
+				setSelectedLiveTimeEventId(null)
+			})
+			.finally(() => {
+				setIsLoadingEvents(false)
+			})
+	}, [initialEventId])
+
+	useEffect(() => {
+		if (selectedLiveTimeEventId === null) {
+			setResultsByRound({})
+			setSelectedRoundName('')
+			setSelectedClassName('')
+			setIsLoadingResults(false)
+			return
+		}
+
+		setIsLoadingResults(true)
+
+		API.getEventResults(selectedLiveTimeEventId)
+			.then((data) => {
+				const nextResults = (data || {}) as RaceEventResultsByRound
+				setResultsByRound(nextResults)
+
+				const orderedRounds = sortRoundNames(Object.keys(nextResults))
+				setSelectedRoundName((current) => (
+					current && orderedRounds.includes(current) ? current : (orderedRounds[0] || '')
+				))
+			})
+			.catch(() => {
+				setResultsByRound({})
+				setSelectedRoundName('')
+				setSelectedClassName('')
+			})
+			.finally(() => {
+				setIsLoadingResults(false)
+			})
+	}, [selectedLiveTimeEventId])
+
+	useEffect(() => {
+		const classesForRound = selectedRoundName ? resultsByRound[selectedRoundName] : undefined
+		const classNames = classesForRound ? Object.keys(classesForRound) : []
+
+		setSelectedClassName((current) => (
+			current && classNames.includes(current) ? current : (classNames[0] || '')
+		))
+	}, [resultsByRound, selectedRoundName])
+
+	const orderedRounds = useMemo(() => sortRoundNames(Object.keys(resultsByRound)), [resultsByRound])
+	const classMapForRound = selectedRoundName ? resultsByRound[selectedRoundName] : undefined
+	const availableClasses = classMapForRound ? Object.keys(classMapForRound) : []
+	const selectedClassResults = (classMapForRound && selectedClassName)
+		? classMapForRound[selectedClassName] || []
+		: []
+
+	return (
+		<Column className={`w-full ${className || ''}`} style={{ maxWidth: width, width: '100%', ...style }} gap={3}>
+			<Column className="w-full rounded border border-gray-300 bg-white p-3" gap={3}>
+				<BriefContentHeader icon="fa-solid fa-filter">Race Results Explorer</BriefContentHeader>
+
+				<div className="grid w-full grid-cols-2 gap-2">
+					<Column className="min-w-0" gap={1}>
+						<label htmlFor="results-event-select" className="text-sm font-semibold text-gray-700">Event</label>
+						<select
+							id="results-event-select"
+							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
+							value={selectedLiveTimeEventId ?? ''}
+							onChange={(event) => {
+								const nextId = parseInt(event.target.value, 10)
+								setSelectedLiveTimeEventId(Number.isFinite(nextId) ? nextId : null)
+							}}
+							disabled={isLoadingEvents || eventsWithLiveTimeId.length === 0}
+						>
+							{eventsWithLiveTimeId.length === 0 && <option value="">No events available</option>}
+							{eventsWithLiveTimeId.map((event) => (
+								<option key={event.id} value={event.livetimeID ?? ''}>
+									{getEventDisplayLabel(event)}
+								</option>
+							))}
+						</select>
+					</Column>
+
+					<Column className="min-w-0" gap={1}>
+						<label htmlFor="results-round-select" className="text-sm font-semibold text-gray-700">Round</label>
+						<select
+							id="results-round-select"
+							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
+							value={selectedRoundName}
+							onChange={(event) => setSelectedRoundName(event.target.value)}
+							disabled={isLoadingResults || orderedRounds.length === 0}
+						>
+							{orderedRounds.length === 0 && <option value="">No rounds available</option>}
+							{orderedRounds.map((roundName) => (
+								<option key={roundName} value={roundName}>{roundName}</option>
+							))}
+						</select>
+					</Column>
+				</div>
+
+				<Column className="w-full" gap={1}>
+						<label htmlFor="results-class-select" className="text-sm font-semibold text-gray-700">Class</label>
+						<select
+							id="results-class-select"
+							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
+							value={selectedClassName}
+							onChange={(event) => setSelectedClassName(event.target.value)}
+							disabled={isLoadingResults || availableClasses.length === 0}
+						>
+							{availableClasses.length === 0 && <option value="">No classes available</option>}
+							{availableClasses.map((className) => (
+								<option key={className} value={className}>{className}</option>
+							))}
+						</select>
+					</Column>
+			</Column>
+
+			{isLoadingEvents && (
+				<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
+					Loading events...
+				</ContentWithIcon>
+			)}
+
+			{!isLoadingEvents && isLoadingResults && (
+				<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
+					Loading race results...
+				</ContentWithIcon>
+			)}
+
+			{!isLoadingEvents && !isLoadingResults && selectedClassName && selectedClassResults.length > 0 && (
+				<div className="w-full">
+					<RaceEventRoundClassResults
+						className={selectedClassName}
+						results={selectedClassResults}
+						startCollapsed={startCollapsed}
+					/>
+				</div>
+			)}
+
+			{!isLoadingEvents && !isLoadingResults && (!selectedClassName || selectedClassResults.length === 0) && (
+				<ContentWithIcon icon="fa-solid fa-flag-checkered">
+					No class results available for the current selection.
+				</ContentWithIcon>
+			)}
+		</Column>
+	)
+}
