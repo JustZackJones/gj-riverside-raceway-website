@@ -12,17 +12,17 @@ export class ScrapedLiveTimeEventRoundResult {
     driverLapDataID: number | null;
     qualifyingPosition: number | null;
     laps: number | null;
-    totalTime: string | null;
+    totalTime: number | null;
     behind: string | null;
-    fastestLap: string | null;
+    fastestLap: number | null;
     fastestLapNumber: number | null;
-    avgLap: string | null;
-    avgTop5: string | null;
-    avgTop10: string | null;
-    avgTop15: string | null;
-    top3Consecutive: string | null;
-    stdDeviation: string | null;
-    consistency: string | null;
+    avgLap: number | null;
+    avgTop5: number | null;
+    avgTop10: number | null;
+    avgTop15: number | null;
+    top3Consecutive: number | null;
+    stdDeviation: number | null;
+    consistency: number | null;
 
     constructor({
         roundID,
@@ -59,17 +59,17 @@ export class ScrapedLiveTimeEventRoundResult {
         driverLapDataID?: number | null;
         qualifyingPosition?: number | null;
         laps?: number | null;
-        totalTime?: string | null;
+        totalTime?: number | null;
         behind?: string | null;
-        fastestLap?: string | null;
+        fastestLap?: number | null;
         fastestLapNumber?: number | null;
-        avgLap?: string | null;
-        avgTop5?: string | null;
-        avgTop10?: string | null;
-        avgTop15?: string | null;
-        top3Consecutive?: string | null;
-        stdDeviation?: string | null;
-        consistency?: string | null;
+        avgLap?: number | null;
+        avgTop5?: number | null;
+        avgTop10?: number | null;
+        avgTop15?: number | null;
+        top3Consecutive?: number | null;
+        stdDeviation?: number | null;
+        consistency?: number | null;
     }) {
         this.roundID = roundID;
         this.liveTimeEventEntryID = liveTimeEventEntryID ?? null;

@@ -128,31 +128,59 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
         return null;
     }
 
-    function parseFastestLap(cell: HTMLElement | undefined): { fastestLap: string | null; fastestLapNumber: number | null } {
+    function parseTimeToSeconds(value: string | null): number | null {
+        if (!value) return null;
+
+        const cleaned = value.trim();
+        if (!cleaned) return null;
+
+        const normalized = cleaned.replace(/\s+/g, '').replace(/,/g, '');
+        const plainNumberMatch = normalized.match(/^\d+(?:\.\d+)?$/);
+        if (plainNumberMatch) return parseFloat(normalized);
+
+        const percentNumberMatch = normalized.match(/^\d+(?:\.\d+)?%$/);
+        if (percentNumberMatch) return parseFloat(normalized.replace('%', ''));
+
+        if (!/^[0-9:.]+$/.test(normalized)) return null;
+
+        const parts = normalized.split(':');
+        if (parts.some((part) => part.length === 0 || Number.isNaN(parseFloat(part)))) return null;
+
+        let totalSeconds = 0;
+        for (let i = 0; i < parts.length; i++) {
+            const partValue = parseFloat(parts[parts.length - 1 - i]);
+            totalSeconds += partValue * Math.pow(60, i);
+        }
+
+        return Number.isFinite(totalSeconds) ? totalSeconds : null;
+    }
+
+    function parseFastestLap(cell: HTMLElement | undefined): { fastestLap: number | null; fastestLapNumber: number | null } {
         const cleaned = cell?.text.trim() || '';
         if (!cleaned) return { fastestLap: null, fastestLapNumber: null };
 
         const lapNumberText = cell?.querySelector('sup')?.text.trim() || '';
         const lapNumber = lapNumberText ? parseInt(lapNumberText, 10) || null : null;
         const lapValue = lapNumberText ? cleaned.replace(lapNumberText, '').trim() : cleaned;
+        const fastestLapSeconds = parseTimeToSeconds(lapValue);
 
-        if (lapNumber || lapValue) {
+        if (lapNumber || fastestLapSeconds !== null) {
             return {
-                fastestLap: lapValue || null,
+                fastestLap: fastestLapSeconds,
                 fastestLapNumber: lapNumber,
             };
         }
 
         const match = cleaned.match(/^([0-9.]+)(?:\s*(\d+))?$/);
-        if (!match) return { fastestLap: cleaned, fastestLapNumber: null };
+        if (!match) return { fastestLap: null, fastestLapNumber: null };
 
         return {
-            fastestLap: match[1] || null,
+            fastestLap: parseTimeToSeconds(match[1] || null),
             fastestLapNumber: match[2] ? parseInt(match[2], 10) : null,
         };
     }
 
-    function parseLapsAndTime(value: string | null): { laps: number | null; totalTime: string | null } {
+    function parseLapsAndTime(value: string | null): { laps: number | null; totalTime: number | null } {
         if (!value) return { laps: null, totalTime: null };
 
         const cleaned = value.trim();
@@ -161,10 +189,10 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
         const parts = cleaned.split('/');
         if (parts.length >= 2) {
             const laps = parseInt(parts[0].trim(), 10);
-            const totalTime = parts.slice(1).join('/').trim();
+            const totalTime = parseTimeToSeconds(parts.slice(1).join('/').trim());
             return {
                 laps: Number.isFinite(laps) ? laps : null,
-                totalTime: totalTime || null,
+                totalTime,
             };
         }
 
@@ -172,7 +200,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
             return { laps: parseInt(cleaned, 10), totalTime: null };
         }
 
-        return { laps: null, totalTime: cleaned };
+        return { laps: null, totalTime: parseTimeToSeconds(cleaned) };
     }
 
     function parseRoundHeatsFromPage(
@@ -280,13 +308,13 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
             const { laps, totalTime } = parseLapsAndTime(cols[3]?.text.trim() || null);
             const behind = cols[4]?.text.trim() || null;
             const { fastestLap, fastestLapNumber } = parseFastestLap(cols[5]);
-            const avgLap = cols[6]?.text.trim() || null;
-            const avgTop5 = cols[7]?.text.trim() || null;
-            const avgTop10 = cols[8]?.text.trim() || null;
-            const avgTop15 = cols[9]?.text.trim() || null;
-            const top3Consecutive = cols[10]?.text.trim() || null;
-            const stdDeviation = cols[11]?.text.trim() || null;
-            const consistency = cols[12]?.text.trim() || null;
+            const avgLap = parseTimeToSeconds(cols[6]?.text.trim() || null);
+            const avgTop5 = parseTimeToSeconds(cols[7]?.text.trim() || null);
+            const avgTop10 = parseTimeToSeconds(cols[8]?.text.trim() || null);
+            const avgTop15 = parseTimeToSeconds(cols[9]?.text.trim() || null);
+            const top3Consecutive = parseTimeToSeconds(cols[10]?.text.trim() || null);
+            const stdDeviation = parseTimeToSeconds(cols[11]?.text.trim() || null);
+            const consistency = parseTimeToSeconds(cols[12]?.text.trim() || null);
 
             if (!finishPosition || !driverName) return [];
 
@@ -419,8 +447,6 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
         let shallowSyncCount = 0;
 
         for (const event of events) {
-            await upsertTrackEvent(event);
-
             const shouldRunFullSync = fullSync || isEventLessThanOneDayOld(event);
             if (shouldRunFullSync) {
                 await hydrateEventFromEventPage(event);
@@ -428,9 +454,11 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
                 await upsertLiveTimeEventRounds(event);
                 await upsertLiveTimeEventEntries(event);
                 await upsertRoundHeats(event);
+                await upsertTrackEvent(event);
                 fullSyncCount++;
             } else {
                 await upsertLiveTimeEventShallow(event);
+                await upsertTrackEvent(event);
                 shallowSyncCount++;
             }
 

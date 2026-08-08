@@ -113,17 +113,17 @@ model LiveTimeEventRoundResult {
   driverName          String?
   qualifyingPosition  Int?
   laps                Int?
-  totalTime           String?
+  totalTime           Float?
   behind              String?
-  fastestLap          String?
+  fastestLap          Float?
   fastestLapNumber    Int?
-  avgLap              String?
-  avgTop5             String?
-  avgTop10            String?
-  avgTop15            String?
-  top3Consecutive     String?
-  stdDeviation        String?
-  consistency         String?
+  avgLap              Float?
+  avgTop5             Float?
+  avgTop10            Float?
+  avgTop15            Float?
+  top3Consecutive     Float?
+  stdDeviation        Float?
+  consistency         Float?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @default(now()) @updatedAt
 
