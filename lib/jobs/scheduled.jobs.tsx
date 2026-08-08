@@ -1,4 +1,4 @@
-import SyncLiveTimeContentJob from '@/lib/jobs/sync.livetimerc.content.job';
+import SyncLiveTimeEventsJob from '@/lib/jobs/sync.livetimerc.events.job';
 import { RunnableJob } from '@/lib/jobs/runnable.job';
 import Logger from '@/lib/utils/logger';
 
@@ -6,7 +6,7 @@ export default class ScheduledJobs {
     static logger: Logger = new Logger('ScheduledJobs');
 
     private static jobs = [
-        new RunnableJob("sync_livetimerc_content", SyncLiveTimeContentJob),
+        new RunnableJob("sync_livetimerc_content", SyncLiveTimeEventsJob),
     ]
 
     private static lastSyncStartTime: number = 0;

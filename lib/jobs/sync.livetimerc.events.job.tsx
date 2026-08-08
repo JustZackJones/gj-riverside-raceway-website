@@ -6,8 +6,8 @@ import { HTMLElement } from 'node-html-parser';
 import { ScraperUtils } from "../utils/scraper.utils";
 import { ScrapedLiveTimeEvent } from "@/lib/jobs/models/scraped.livetime.event";
 
-export default async function SyncLiveTimeContentJob() {
-    const logger: Logger = new Logger('SyncLiveTimeContentJob');
+export default async function SyncLiveTimeEventsJob() {
+    const logger: Logger = new Logger('SyncLiveTimeEventsJob');
 
     async function upsertTrackEvent(event: ScrapedLiveTimeEvent): Promise<void> {
         await Events.upsertByLiveTimeId(event.event_id, event.toTrackEvent());
