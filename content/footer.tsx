@@ -1,10 +1,11 @@
 import { about } from '@/content/about';
+import { facebook } from '@/content/facebook';
 
 export const footer = [
     {
         items: [
             { icon: 'fas fa-map-marker-alt', content: about.getAddressAnchorTag() }, 
-            { icon: 'fas fa-phone', content: about.getPhoneAnchorTag() }
+            { icon: 'fa-brands fa-facebook-messenger', content: facebook.primaryContactContent() }
         ]
     }, {
         items: [
