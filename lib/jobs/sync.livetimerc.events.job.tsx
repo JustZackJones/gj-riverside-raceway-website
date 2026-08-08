@@ -4,7 +4,6 @@ import LiveTimeEvents from "@/lib/db/livetime";
 import LiveTimeEventRoundHeats from "@/lib/db/livetime.round.heats";
 import LiveTimeEventRoundResults from "@/lib/db/livetime.round.results";
 import LiveTimeEventRounds from "@/lib/db/livetime.rounds";
-import { LiveTimeEventEntry } from "@prisma/client";
 import Logger from "@/lib/utils/logger";
 import { livetime } from "@/content/content";
 import { HTMLElement } from 'node-html-parser';
@@ -86,48 +85,6 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
         };
     }
 
-    function stripMainSuffix(rawClassName: string): string {
-        return rawClassName.replace(/\s+[A-Z]-Main\s*$/i, '').trim();
-    }
-
-    function resolveEntryLink(
-        eventEntries: LiveTimeEventEntry[],
-        className: string,
-        driverName: string,
-        options?: { carNumber?: number | null; transponder?: string | null }
-    ): LiveTimeEventEntry | null {
-        const classCandidates = [className, stripMainSuffix(className)]
-            .map((name) => name.trim().toLowerCase())
-            .filter((name, index, list) => name.length > 0 && list.indexOf(name) === index);
-
-        const inClass = eventEntries.filter((entry) =>
-            classCandidates.includes(entry.className.toLowerCase())
-        );
-
-        if (options?.carNumber) {
-            const byEntryNumber = inClass.filter((entry) => entry.entryNumber === options.carNumber);
-            if (byEntryNumber.length === 1) return byEntryNumber[0];
-        }
-
-        if (options?.transponder) {
-            const normalizedTx = options.transponder.trim();
-            const byTransponder = inClass.filter((entry) => (entry.transponder || '').trim() === normalizedTx);
-            if (byTransponder.length === 1) return byTransponder[0];
-        }
-
-        const byDriverName = inClass.filter((entry) =>
-            entry.driverName.toLowerCase() === driverName.toLowerCase()
-        );
-        if (byDriverName.length === 1) return byDriverName[0];
-
-        const globalByDriver = eventEntries.filter((entry) =>
-            entry.driverName.toLowerCase() === driverName.toLowerCase()
-        );
-        if (globalByDriver.length === 1) return globalByDriver[0];
-
-        return null;
-    }
-
     function parseTimeToSeconds(value: string | null): number | null {
         if (!value) return null;
 
@@ -205,8 +162,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
 
     function parseRoundHeatsFromPage(
         roundID: number,
-        root: HTMLElement,
-        eventEntries: LiveTimeEventEntry[]
+        root: HTMLElement
     ): ScrapedLiveTimeEventRoundHeat[] {
         const rows = root.querySelectorAll('table.heat_sheet tbody tr');
         const heatRows: ScrapedLiveTimeEventRoundHeat[] = [];
@@ -256,24 +212,16 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
 
             if (!startingPosition || !driverName) continue;
 
-            const linkedEntry = resolveEntryLink(eventEntries, currentClassName, driverName, {
-                carNumber,
-                transponder,
-            });
-            const driverNameToStore = linkedEntry ? null : driverName;
-            const transponderToStore = linkedEntry ? null : transponder;
-
             heatRows.push(new ScrapedLiveTimeEventRoundHeat({
                 roundID,
-                liveTimeEventEntryID: linkedEntry?.id ?? null,
                 className: currentClassName,
                 raceNumber: currentRaceNumber,
                 heatNumber: currentHeatNumber,
                 heatTotal: currentHeatTotal,
                 startingPosition,
                 carNumber,
-                driverName: driverNameToStore,
-                transponder: transponderToStore,
+                driverName,
+                transponder,
                 seedNumber,
                 seedResult,
                 raceResultID: currentRaceResultID,
@@ -286,9 +234,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
     function parseRoundResultsFromPage(
         roundID: number,
         raceResultID: number,
-        root: HTMLElement,
-        eventEntries: LiveTimeEventEntry[],
-        roundHeatRows: ScrapedLiveTimeEventRoundHeat[]
+        root: HTMLElement
     ): ScrapedLiveTimeEventRoundResult[] {
         const classHeaderText = root.querySelector('table.race_result .class_header')?.text.trim() || '';
         const raceNumberText = root.querySelector('table.race_result .race_num')?.text.trim() || '';
@@ -318,29 +264,14 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
 
             if (!finishPosition || !driverName) return [];
 
-            const linkedFromHeat = roundHeatRows.find((heatRow) =>
-                heatRow.raceResultID === raceResultID
-                && (
-                    (carNumber !== null && heatRow.carNumber === carNumber)
-                    || (heatRow.driverName || '').toLowerCase() === driverName.toLowerCase()
-                )
-                && heatRow.liveTimeEventEntryID !== null
-            );
-
-            const linkedEntry = linkedFromHeat?.liveTimeEventEntryID
-                ? eventEntries.find((entry) => entry.id === linkedFromHeat.liveTimeEventEntryID) || null
-                : resolveEntryLink(eventEntries, classHeaderText, driverName, { carNumber });
-            const driverNameToStore = linkedEntry ? null : driverName;
-
             return [new ScrapedLiveTimeEventRoundResult({
                 roundID,
-                liveTimeEventEntryID: linkedEntry?.id ?? null,
                 raceResultID,
                 className: classHeaderText,
                 raceNumber,
                 finishPosition,
                 carNumber,
-                driverName: driverNameToStore,
+                driverName,
                 driverLapDataID,
                 qualifyingPosition,
                 laps,
@@ -361,9 +292,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
 
     async function upsertRoundResults(
         roundID: number,
-        raceResultIDs: number[],
-        eventEntries: LiveTimeEventEntry[],
-        roundHeatRows: ScrapedLiveTimeEventRoundHeat[]
+        raceResultIDs: number[]
     ): Promise<void> {
         const uniqueRaceResultIDs = [...new Set(raceResultIDs.filter((id) => id > 0))];
         const allRows: ScrapedLiveTimeEventRoundResult[] = [];
@@ -372,7 +301,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
             try {
                 const raceResultPageUrl = livetime.getLink(`/results/?p=view_race_result&id=${raceResultID}`);
                 const raceResultPage = await ScraperUtils.scrapeAsHTML(raceResultPageUrl);
-                const parsed = parseRoundResultsFromPage(roundID, raceResultID, raceResultPage, eventEntries, roundHeatRows);
+                const parsed = parseRoundResultsFromPage(roundID, raceResultID, raceResultPage);
                 allRows.push(...parsed);
             } catch (error) {
                 logger.warn(`Failed to sync race result rows for race result ${raceResultID}: ${error}`);
@@ -386,13 +315,11 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
     }
 
     async function upsertRoundHeats(event: ScrapedLiveTimeEvent): Promise<void> {
-        const persistedEntries = await LiveTimeEventEntries.getByEventId(event.event_id);
-
         for (const round of event.rounds) {
             try {
                 const roundPageUrl = livetime.getLink(`/results/?p=view_heat_sheet&id=${round.roundID}`);
                 const roundPage = await ScraperUtils.scrapeAsHTML(roundPageUrl);
-                const heatRows = parseRoundHeatsFromPage(round.roundID, roundPage, persistedEntries);
+                const heatRows = parseRoundHeatsFromPage(round.roundID, roundPage);
                 await LiveTimeEventRoundHeats.replaceForRound(
                     round.roundID,
                     heatRows.map((heatRow) => heatRow.toLiveTimeEventRoundHeat())
@@ -400,9 +327,7 @@ export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJ
 
                 await upsertRoundResults(
                     round.roundID,
-                    heatRows.map((heatRow) => heatRow.raceResultID || 0),
-                    persistedEntries,
-                    heatRows
+                    heatRows.map((heatRow) => heatRow.raceResultID || 0)
                 );
             } catch (error) {
                 logger.warn(`Failed to sync heat rows for round ${round.roundID}: ${error}`);

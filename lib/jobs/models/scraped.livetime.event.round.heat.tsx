@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 
 export class ScrapedLiveTimeEventRoundHeat {
     roundID: number;
-    liveTimeEventEntryID: number | null;
     className: string;
     raceNumber: number;
     heatNumber: number | null;
@@ -17,7 +16,6 @@ export class ScrapedLiveTimeEventRoundHeat {
 
     constructor({
         roundID,
-        liveTimeEventEntryID,
         className,
         raceNumber,
         heatNumber,
@@ -31,7 +29,6 @@ export class ScrapedLiveTimeEventRoundHeat {
         raceResultID,
     }: {
         roundID: number;
-        liveTimeEventEntryID?: number | null;
         className: string;
         raceNumber: number;
         heatNumber?: number | null;
@@ -45,7 +42,6 @@ export class ScrapedLiveTimeEventRoundHeat {
         raceResultID?: number | null;
     }) {
         this.roundID = roundID;
-        this.liveTimeEventEntryID = liveTimeEventEntryID ?? null;
         this.className = className;
         this.raceNumber = raceNumber;
         this.heatNumber = heatNumber ?? null;
@@ -62,7 +58,6 @@ export class ScrapedLiveTimeEventRoundHeat {
     toLiveTimeEventRoundHeat(): Prisma.LiveTimeEventRoundHeatCreateManyInput {
         return {
             roundID: this.roundID,
-            liveTimeEventEntryID: this.liveTimeEventEntryID,
             className: this.className,
             raceNumber: this.raceNumber,
             heatNumber: this.heatNumber,

@@ -65,8 +65,6 @@ model LiveTimeEventEntry {
   driverName      String
   fullName        String?
   transponder     String?
-  roundHeats      LiveTimeEventRoundHeat[]
-  roundResults    LiveTimeEventRoundResult[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
 
@@ -78,8 +76,6 @@ model LiveTimeEventRoundHeat {
   id                Int                @id @default(autoincrement())
   roundID           Int
   round             LiveTimeEventRound @relation(fields: [roundID], references: [roundID])
-  liveTimeEventEntryID Int?
-  liveTimeEventEntry   LiveTimeEventEntry? @relation(fields: [liveTimeEventEntryID], references: [id])
   raceResultID      Int?
   className         String
   raceNumber        Int
@@ -95,15 +91,12 @@ model LiveTimeEventRoundHeat {
   updatedAt         DateTime           @default(now()) @updatedAt
 
   @@index([roundID])
-  @@index([liveTimeEventEntryID])
 }
 
 model LiveTimeEventRoundResult {
   id                  Int                @id @default(autoincrement())
   roundID             Int
   round               LiveTimeEventRound @relation(fields: [roundID], references: [roundID])
-  liveTimeEventEntryID Int?
-  liveTimeEventEntry   LiveTimeEventEntry? @relation(fields: [liveTimeEventEntryID], references: [id])
   raceResultID        Int
   driverLapDataID     Int?
   className           String
@@ -128,6 +121,5 @@ model LiveTimeEventRoundResult {
   updatedAt           DateTime           @default(now()) @updatedAt
 
   @@index([roundID])
-  @@index([liveTimeEventEntryID])
   @@index([raceResultID])
 }

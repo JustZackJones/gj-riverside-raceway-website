@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 
 export class ScrapedLiveTimeEventRoundResult {
     roundID: number;
-    liveTimeEventEntryID: number | null;
     raceResultID: number;
     className: string;
     raceNumber: number | null;
@@ -26,7 +25,6 @@ export class ScrapedLiveTimeEventRoundResult {
 
     constructor({
         roundID,
-        liveTimeEventEntryID,
         raceResultID,
         className,
         raceNumber,
@@ -49,7 +47,6 @@ export class ScrapedLiveTimeEventRoundResult {
         consistency,
     }: {
         roundID: number;
-        liveTimeEventEntryID?: number | null;
         raceResultID: number;
         className: string;
         raceNumber?: number | null;
@@ -72,7 +69,6 @@ export class ScrapedLiveTimeEventRoundResult {
         consistency?: number | null;
     }) {
         this.roundID = roundID;
-        this.liveTimeEventEntryID = liveTimeEventEntryID ?? null;
         this.raceResultID = raceResultID;
         this.className = className;
         this.raceNumber = raceNumber ?? null;
@@ -98,7 +94,6 @@ export class ScrapedLiveTimeEventRoundResult {
     toLiveTimeEventRoundResult(): Prisma.LiveTimeEventRoundResultCreateManyInput {
         return {
             roundID: this.roundID,
-            liveTimeEventEntryID: this.liveTimeEventEntryID,
             raceResultID: this.raceResultID,
             className: this.className,
             raceNumber: this.raceNumber,
