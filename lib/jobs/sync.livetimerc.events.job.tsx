@@ -13,8 +13,21 @@ import { ScrapedLiveTimeEvent } from "@/lib/jobs/models/scraped.livetime.event";
 import { ScrapedLiveTimeEventRoundHeat } from "@/lib/jobs/models/scraped.livetime.event.round.heat";
 import { ScrapedLiveTimeEventRoundResult } from "@/lib/jobs/models/scraped.livetime.event.round.result";
 
-export default async function SyncLiveTimeEventsJob() {
+type SyncLiveTimeEventsJobOptions = {
+    fullSync?: boolean;
+};
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+export default async function SyncLiveTimeEventsJob(options: SyncLiveTimeEventsJobOptions = {}) {
     const logger: Logger = new Logger('SyncLiveTimeEventsJob');
+    const fullSync = options.fullSync ?? true;
+
+    function isEventLessThanOneDayOld(event: ScrapedLiveTimeEvent): boolean {
+        const startedAt = new Date(event.date).getTime();
+        if (Number.isNaN(startedAt)) return true;
+        return startedAt >= (Date.now() - ONE_DAY_MS);
+    }
 
     async function upsertTrackEvent(event: ScrapedLiveTimeEvent): Promise<void> {
         await Events.upsertByLiveTimeId(event.event_id, event.toTrackEvent());
@@ -22,6 +35,28 @@ export default async function SyncLiveTimeEventsJob() {
 
     async function upsertLiveTimeEvent(event: ScrapedLiveTimeEvent): Promise<void> {
         await LiveTimeEvents.upsert(event.event_id, event.toLiveTimeEvent());
+    }
+
+    async function upsertLiveTimeEventShallow(event: ScrapedLiveTimeEvent): Promise<void> {
+        const existing = await LiveTimeEvents.getById(event.event_id);
+
+        if (!existing) {
+            await LiveTimeEvents.create({
+                id: event.event_id,
+                name: event.name,
+                entries: event.entries,
+                drivers: event.drivers,
+                startedAt: event.date ? new Date(event.date) : null,
+            });
+            return;
+        }
+
+        await LiveTimeEvents.update(event.event_id, {
+            name: event.name,
+            entries: event.entries,
+            drivers: event.drivers,
+            startedAt: event.date ? new Date(event.date) : null,
+        });
     }
 
     async function upsertLiveTimeEventRounds(event: ScrapedLiveTimeEvent): Promise<void> {
@@ -379,15 +414,30 @@ export default async function SyncLiveTimeEventsJob() {
     //Upserts all scraped events into the database
     async function upsertEvents(events: ScrapedLiveTimeEvent[]): Promise<void> {
         logger.info(`Upserting events into database...`);
+
+        let fullSyncCount = 0;
+        let shallowSyncCount = 0;
+
         for (const event of events) {
-            await hydrateEventFromEventPage(event);
-            await upsertLiveTimeEvent(event);
-            await upsertLiveTimeEventRounds(event);
-            await upsertLiveTimeEventEntries(event);
-            await upsertRoundHeats(event);
             await upsertTrackEvent(event);
+
+            const shouldRunFullSync = fullSync || isEventLessThanOneDayOld(event);
+            if (shouldRunFullSync) {
+                await hydrateEventFromEventPage(event);
+                await upsertLiveTimeEvent(event);
+                await upsertLiveTimeEventRounds(event);
+                await upsertLiveTimeEventEntries(event);
+                await upsertRoundHeats(event);
+                fullSyncCount++;
+            } else {
+                await upsertLiveTimeEventShallow(event);
+                shallowSyncCount++;
+            }
+
             logger.info(`Upserted ${event.name} (LiveTime ID: ${event.event_id})`);
         }
+
+        logger.info(`Event sync mode counts: full=${fullSyncCount}, shallow=${shallowSyncCount}`);
         logger.info(`Upserted ${events.length} events into database`);
     }
 
@@ -398,6 +448,12 @@ export default async function SyncLiveTimeEventsJob() {
         await ScraperUtils.scrapeAsHTML(eventsUrl).then(async html => {
             //1. Extract events from the html
             const events: ScrapedLiveTimeEvent[] = extractEventsFromPage(html);
+            if (fullSync) {
+                logger.info(`Full sync enabled for startup run. Syncing all ${events.length} events.`);
+            } else {
+                logger.info(`Incremental sync enabled. All events will be discovered; full sync runs only for events less than 24 hours old.`);
+            }
+
             //2. Upsert each event into the relevant tables
             await upsertEvents(events);
         });

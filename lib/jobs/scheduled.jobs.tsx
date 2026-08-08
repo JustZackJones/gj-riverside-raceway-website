@@ -75,8 +75,9 @@ export default class ScheduledJobs {
         const job = ScheduledJobs.getNextJob();
         if (!job) ScheduledJobs.onNoJobToRun();
         else {
+            const isStartupRun = ScheduledJobs.jobsRun === 0;
             ScheduledJobs.onJobRunStarted(job);
-            await job.run();
+            await job.run({ fullSync: isStartupRun });
             ScheduledJobs.onJobRunComplete(job);
         }
     }
