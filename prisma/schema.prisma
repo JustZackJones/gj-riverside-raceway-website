@@ -36,6 +36,7 @@ model LiveTimeEvent {
     laps        Int?
     startedAt   DateTime?
     rounds      LiveTimeEventRound[]
+  eventEntries LiveTimeEventEntry[]
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @default(now()) @updatedAt
 }
@@ -51,4 +52,20 @@ model LiveTimeEventRound {
     updatedAt       DateTime        @default(now()) @updatedAt
 
     @@index([liveTimeEventID])
+}
+
+model LiveTimeEventEntry {
+  id              Int             @id @default(autoincrement())
+  liveTimeEventID Int
+  liveTimeEvent   LiveTimeEvent   @relation(fields: [liveTimeEventID], references: [id])
+  className       String
+  entryNumber     Int
+  driverName      String
+  fullName        String?
+  transponder     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+
+  @@index([liveTimeEventID])
+  @@index([liveTimeEventID, className])
 }
