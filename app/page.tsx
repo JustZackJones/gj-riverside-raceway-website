@@ -12,6 +12,7 @@ import RaceClasses from '@/components/site/classes/race.classes'
 import SiteInfoBanner from '@/components/site/info-banner/site.info.banner'
 import RaceAwards from '@/components/site/awards/race.awards'
 import RaceEventRoundResults from '@/components/site/results/race.event.round.results'
+import RaceEventWinners from '@/components/site/results/race.event.winners'
 
 export default function Home() {
 
@@ -120,6 +121,7 @@ export default function Home() {
                     </div>
 
                     {resultsEventId !== null && (
+                        <>
                     <FullWidthRow className={`race-results ${getNextRowClass()}`}>
                         <RaceEventRoundResults
                             eventId={resultsEventId}
@@ -127,6 +129,15 @@ export default function Home() {
                             style={{margin: '0px auto'}}
                         />
                     </FullWidthRow>
+                    <FullWidthRow className={`race-results ${getNextRowClass()}`}>
+                        <RaceEventWinners 
+                            eventId={resultsEventId}
+                            width="1100px"
+                            showLastRoundOnly
+                            style={{margin: '0px auto'}}
+                        />
+                    </FullWidthRow>
+                    </>
                     )}
 
                     {/* Socials Container is identical for any screen size*/}

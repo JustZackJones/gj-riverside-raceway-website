@@ -59,6 +59,7 @@ function formatLaps(value: number | null, compact: boolean): string {
 }
 
 const desktopMetricChipWidth = 'unset'
+const driverInfoWidthClass = 'w-[112px] sm:w-[180px]'
 
 function ResponsiveMetricText({
 	mobile,
@@ -92,7 +93,7 @@ export default function RaceEventRoundClassDriverResults({
 					P{result.finishPosition}
 				</Chip>
 
-				<Column className="min-w-0" gap={0}>
+				<Column className={`min-w-0 ${driverInfoWidthClass}`} gap={0}>
 					<span className="truncate text-sm font-semibold">
 						{result.driverName || 'Unknown Driver'}
 					</span>
