@@ -11,6 +11,13 @@ export default class LiveTimeEventRoundResults {
         })
     }
 
+    static async getRoundResults(roundID: number): Promise<LiveTimeEventRoundResult[]> {
+        return prisma.liveTimeEventRoundResult.findMany({
+            where: { roundID },
+            orderBy: [{ raceResultID: 'asc' }, { finishPosition: 'asc' }],
+        });
+    }
+
     static async getLastFinishedEventResults(): Promise<LiveTimeEventRoundResult[]> {
         const event = await LiveTimeEvents.getLastFinishedEvent();
         if (!event) return [];
@@ -18,10 +25,7 @@ export default class LiveTimeEventRoundResults {
         const mainRound = await LiveTimeEventRounds.getMainRoundByEventId(event.id);
         if (!mainRound) return [];
 
-        return prisma.liveTimeEventRoundResult.findMany({
-            where: { roundID: mainRound?.roundID ?? 0 },
-            orderBy: [{ raceResultID: 'asc' }, { finishPosition: 'asc' }],
-        });
+        return this.getRoundResults(mainRound.roundID);
     }
 
     static async getLastFinishedEventWinners(): Promise<LiveTimeEventRoundResult[]> {
