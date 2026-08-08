@@ -1,6 +1,7 @@
 import { HTMLElement } from 'node-html-parser';
 import { livetime } from "@/content/content";
 import { Prisma }  from "@prisma/client";
+import { ScrapedLiveTimeEventEntry } from './scraped.livetime.event.entry';
 import { ScrapedLiveTimeEventRound } from './scraped.livetime.event.round';
 
 export class ScrapedLiveTimeEvent {
@@ -12,7 +13,9 @@ export class ScrapedLiveTimeEvent {
     drivers: number;
     laps: number;
     livetime_path: string;
+    entry_list_path: string;
     rounds: ScrapedLiveTimeEventRound[];
+    eventEntries: ScrapedLiveTimeEventEntry[];
 
     constructor(row: HTMLElement) {
         const cols = row.querySelectorAll('td');
@@ -37,7 +40,9 @@ export class ScrapedLiveTimeEvent {
         this.drivers = parseInt(cols[3]?.text.trim() || '0', 10);
         this.track = '';
         this.laps = 0;
+        this.entry_list_path = '';
         this.rounds = [];
+        this.eventEntries = [];
 
         this.livetime_path = `${livetime.resultsPath}${this.event_id}`;
     }
@@ -66,6 +71,12 @@ export class ScrapedLiveTimeEvent {
         if (driverMatch) this.drivers = parseInt(driverMatch[1].replace(/,/g, ''), 10) || this.drivers;
         if (laps) this.laps = parseInt(laps.replace(/,/g, ''), 10) || 0;
 
+        const entryListLink = root.querySelectorAll('a').find((link) => {
+            const href = link.getAttribute('href') || '';
+            return href.includes('view_entry_list&id=');
+        });
+        this.entry_list_path = entryListLink?.getAttribute('href') || '';
+
         this.rounds = root.querySelectorAll('a').flatMap((link) => {
             const href = link.getAttribute('href') || '';
             if (!href.includes('view_heat_sheet&id=')) return [];
@@ -86,6 +97,39 @@ export class ScrapedLiveTimeEvent {
                 type: qualifierMatch ? 'qualifier' : 'main',
                 roundNumber: qualifierMatch ? parseInt(qualifierMatch[1], 10) : null,
             })];
+        });
+    }
+
+    updateEntriesFromEntryListPage(root: HTMLElement): void {
+        this.eventEntries = root.querySelectorAll('div.tab-pane table').flatMap((table) => {
+            const className = table.querySelector('.class_header')?.text.trim() || '';
+            if (!className) return [];
+
+            return table.querySelectorAll('tbody tr').flatMap((row) => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length < 3) return [];
+
+                const entryNumber = parseInt(cols[0]?.text.trim() || '0', 10);
+                const driverCell = cols[1];
+                const hiddenDriverName = driverCell?.querySelector('.hidden')?.text.trim() || '';
+                const rawDriverName = driverCell?.text.trim() || '';
+                const driverName = hiddenDriverName && rawDriverName.startsWith(hiddenDriverName)
+                    ? rawDriverName.slice(hiddenDriverName.length).trim()
+                    : rawDriverName;
+                const fullName = hiddenDriverName || driverName;
+                const transponder = cols[2]?.text.trim() || '';
+
+                if (!entryNumber || !driverName) return [];
+
+                return [new ScrapedLiveTimeEventEntry({
+                    liveTimeEventID: this.event_id,
+                    className,
+                    entryNumber,
+                    driverName,
+                    fullName,
+                    transponder: transponder || null,
+                })];
+            });
         });
     }
 
@@ -113,6 +157,6 @@ export class ScrapedLiveTimeEvent {
     }
 
     toString(): string {
-        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, track: ${this.track}, entries: ${this.entries}, drivers: ${this.drivers}, laps: ${this.laps}, livetime_path: ${this.livetime_path}, rounds: ${this.rounds.length} }`;
+        return `ScrapedLiveTimeEvent { event_id: ${this.event_id}, name: ${this.name}, date: ${this.date}, track: ${this.track}, entries: ${this.entries}, drivers: ${this.drivers}, laps: ${this.laps}, livetime_path: ${this.livetime_path}, entry_list_path: ${this.entry_list_path}, rounds: ${this.rounds.length}, eventEntries: ${this.eventEntries.length} }`;
     }
 }
