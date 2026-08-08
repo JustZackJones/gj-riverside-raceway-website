@@ -35,6 +35,20 @@ model LiveTimeEvent {
     drivers     Int?
     laps        Int?
     startedAt   DateTime?
+    rounds      LiveTimeEventRound[]
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @default(now()) @updatedAt
+}
+
+model LiveTimeEventRound {
+  roundID         Int             @id
+    liveTimeEventID Int
+    liveTimeEvent   LiveTimeEvent   @relation(fields: [liveTimeEventID], references: [id])
+    name            String
+  type            String
+  roundNumber     Int?
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @default(now()) @updatedAt
+
+    @@index([liveTimeEventID])
 }
