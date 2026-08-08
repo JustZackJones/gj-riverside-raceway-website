@@ -68,7 +68,7 @@ export default function RaceEventRoundClassSelector({
 	useEffect(() => {
 		setIsLoadingEvents(true)
 
-		API.getPreviousEvents(false)
+		API.getPreviousEvents(false, 500)
 			.then((data) => {
 				const nextEvents = (Array.isArray(data) ? data : []) as SelectableEvent[]
 				setEvents(nextEvents)
