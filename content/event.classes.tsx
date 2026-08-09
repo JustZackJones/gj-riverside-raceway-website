@@ -358,7 +358,7 @@ export const eventClasses: Record<string, Record<string, EventClass>> = {
                     ]
                 }, {
                     type: "electronics",
-                    rule: "13.5 or equivalent motor only. ESC, Servo and Receiver of choice."
+                    rule: "Motor, ESC, Servo and Receiver of choice."
                 }, {
                     type: "tires",
                     rule: "Carpet tires or slicks may be used."
@@ -423,7 +423,7 @@ export const eventClasses: Record<string, Record<string, EventClass>> = {
                     ]
                 }, {
                     type: "electronics",
-                    rule: "13.5 or equivalent motor only. ESC, Servo and Receiver of choice."
+                    rule: "Motor, ESC, Servo and Receiver of choice."
                 }, {
                     type: "tires",
                     rule: "Carpet tires or slicks may be used."
