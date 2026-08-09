@@ -147,7 +147,7 @@ export default function RaceEventRoundClassSelector({
 	function getSelectedRoundId(): number { return selectedClassResults[0]?.roundID ?? 0 }
 	function getSelectedRaceId(): number { return selectedClassResults[0]?.raceResultID ?? 0}
 
-	function eventContextLink(link: string, label: string, icon: string = 'fa-solid fa-arrow-up-right-from-square') {
+	function eventResultContextLink(link: string, label: string, icon: string = 'fa-solid fa-arrow-up-right-from-square') {
 		return <ContentWithIcon icon={icon} className="underline"><a href={link}>{label}</a></ContentWithIcon>
 	}
 
@@ -172,7 +172,7 @@ export default function RaceEventRoundClassSelector({
 								label: getEventDisplayLabel(e),
 							}))}
 						/>
-						{eventContextLink(livetime.getEventResultsLink(selectedLiveTimeEventId ?? 0), `${getSelectedEventName()} Results`)}
+						{eventResultContextLink(livetime.getEventResultsLink(selectedLiveTimeEventId ?? 0), `${getSelectedEventName()} Results`)}
 					</Column>
 
 					<Column gap={1}>
@@ -184,7 +184,7 @@ export default function RaceEventRoundClassSelector({
 							emptyMessage="No rounds available"
 							options={orderedRounds.map((n) => ({ value: n, label: n }))}
 						/>
-						{eventContextLink(livetime.getRoundResultsLink(getSelectedRoundId()), `${selectedRoundName} Results`)}
+						{isLoadingResults ? null : eventResultContextLink(livetime.getRoundResultsLink(getSelectedRoundId()), `${selectedRoundName} Results`)}
 					</Column>
 
 					<Column gap={1}>
@@ -196,13 +196,18 @@ export default function RaceEventRoundClassSelector({
 							emptyMessage="No classes available"
 							options={availableClasses.map((n) => ({ value: n, label: n, }))}
 						/>
-						{eventContextLink(livetime.getHeatResultsLink(getSelectedRaceId()), `${selectedClassName} Results`)}
+						{isLoadingResults ? null : eventResultContextLink(livetime.getHeatResultsLink(getSelectedRaceId()), `${selectedClassName} Results`)}
 					</Column>
 				</div>
 
 				{isLoadingEvents && (
 					<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
 						Loading events...
+					</ContentWithIcon>
+				)}
+				{isLoadingResults && (
+					<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
+						Loading results...
 					</ContentWithIcon>
 				)}
 			</Column>
