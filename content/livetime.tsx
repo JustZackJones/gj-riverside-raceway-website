@@ -8,4 +8,10 @@ export const livetime = {
         return `${livetime.baseUrl}${normalizedPath}`;
     },
     getResultLink: (eventId: number) => `${livetime.baseUrl}${livetime.resultsPath}${eventId}`,
+
+    getCurrentEventLink: () => livetime.getLink('results'),
+
+    getEventResultsLink: (eventId: number) => livetime.getLink(`results/?p=view_event&id=${eventId}`),
+    getRoundResultsLink: (roundId: number) => livetime.getLink(`results/?p=view_heat_sheet&id=${roundId}`),
+    getHeatResultsLink: (raceId: number) => livetime.getLink(`results/?p=view_race_result&id=${raceId}`),
 }

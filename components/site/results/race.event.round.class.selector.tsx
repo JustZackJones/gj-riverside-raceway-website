@@ -7,6 +7,7 @@ import { RaceEventDriverResult } from '@/components/site/results/race.event.roun
 import Select from '@/components/ui/select'
 import { Column, ContentWithIcon } from '@/components/ui/ui'
 import API from '@/lib/api/api'
+import { livetime } from '@/content/content'
 
 type RaceEventRoundResultsByClass = Record<string, RaceEventDriverResult[]>
 type RaceEventResultsByRound = Record<string, RaceEventRoundResultsByClass>
@@ -139,13 +140,24 @@ export default function RaceEventRoundClassSelector({
 		? classMapForRound[selectedClassName] || []
 		: []
 
+	function getSelectedEventName(): string {
+		const selectedEvent = eventsWithLiveTimeId.find((event) => event.livetimeID === selectedLiveTimeEventId)
+		return selectedEvent?.name || selectedEvent?.liveTimeEvent?.name || `Event #${selectedEvent?.id ?? 'Unknown'}`
+	}
+	function getSelectedRoundId(): number { return selectedClassResults[0]?.roundID ?? 0 }
+	function getSelectedRaceId(): number { return selectedClassResults[0]?.raceResultID ?? 0}
+
+	function eventContextLink(link: string, label: string, icon: string = 'fa-solid fa-arrow-up-right-from-square') {
+		return <ContentWithIcon icon={icon} className="underline"><a href={link}>{label}</a></ContentWithIcon>
+	}
+
 	return (
 		<Column className={`w-full ${className || ''}`} style={{ maxWidth: width, width: '100%', ...style }} gap={3}>
 			<Column className="w-full rounded border border-gray-300 bg-white p-3" gap={3}>
 				<BriefContentHeader icon="fa-solid fa-filter">Race Results Explorer</BriefContentHeader>
 
 				<div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3">
-					<Column>
+					<Column gap={1}>
 						<Select
 							label="Event"
 							value={selectedLiveTimeEventId !== null ? String(selectedLiveTimeEventId) : ''}
@@ -160,9 +172,10 @@ export default function RaceEventRoundClassSelector({
 								label: getEventDisplayLabel(e),
 							}))}
 						/>
+						{eventContextLink(livetime.getEventResultsLink(selectedLiveTimeEventId ?? 0), `${getSelectedEventName()} Results`)}
 					</Column>
 
-					<Column>
+					<Column gap={1}>
 						<Select
 							label="Round"
 							value={selectedRoundName}
@@ -171,9 +184,10 @@ export default function RaceEventRoundClassSelector({
 							emptyMessage="No rounds available"
 							options={orderedRounds.map((n) => ({ value: n, label: n }))}
 						/>
+						{eventContextLink(livetime.getRoundResultsLink(getSelectedRoundId()), `${selectedRoundName} Results`)}
 					</Column>
 
-					<Column>
+					<Column gap={1}>
 						<Select
 							label="Class"
 							value={selectedClassName}
@@ -182,6 +196,7 @@ export default function RaceEventRoundClassSelector({
 							emptyMessage="No classes available"
 							options={availableClasses.map((n) => ({ value: n, label: n, }))}
 						/>
+						{eventContextLink(livetime.getHeatResultsLink(getSelectedRaceId()), `${selectedClassName} Results`)}
 					</Column>
 				</div>
 
