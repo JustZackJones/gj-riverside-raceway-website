@@ -361,7 +361,7 @@ export const eventClasses: Record<string, Record<string, EventClass>> = {
                     rule: "Motor, ESC, Servo and Receiver of choice."
                 }, {
                     type: "tires",
-                    rule: "Carpet tires or slicks may be used."
+                    rule: "Carpet or dirt tires may be used."
                 }, {
                     type: "bodies",
                     rule: "Appropriate late model bodies should be used."
@@ -398,7 +398,7 @@ export const eventClasses: Record<string, Record<string, EventClass>> = {
                     rule: "13.5 or equivalent motor only. ESC, Servo and Receiver of choice."
                 }, {
                     type: "tires",
-                    rule: "Carpet tires or slicks may be used."
+                    rule: "Carpet or dirt tires may be used."
                 }, {
                     type: "bodies",
                     rule: "Appropriate street stock bodies should be used."
@@ -426,7 +426,7 @@ export const eventClasses: Record<string, Record<string, EventClass>> = {
                     rule: "Motor, ESC, Servo and Receiver of choice."
                 }, {
                     type: "tires",
-                    rule: "Carpet tires or slicks may be used."
+                    rule: "Carpet or dirt tires may be used."
                 }, {
                     type: "bodies",
                     rule: "Appropriate sprint bodies should be used."
