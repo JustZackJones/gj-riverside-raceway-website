@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BriefContentHeader from '@/components/site/brief/brief.content.header'
 import RaceEventRoundClassResults from '@/components/site/results/race.event.round.class.results'
 import { RaceEventDriverResult } from '@/components/site/results/race.event.round.class.driver.results'
+import Select from '@/components/ui/select'
 import { Column, ContentWithIcon } from '@/components/ui/ui'
 import API from '@/lib/api/api'
 
@@ -35,12 +36,9 @@ function sortRoundNames(roundNames: string[]): string[] {
 	return [...roundNames].sort((leftName, rightName) => getRoundPriority(rightName) - getRoundPriority(leftName))
 }
 
-function getEventDisplayName(event: SelectableEvent): string {
-	return event.name || event.liveTimeEvent?.name || `Event #${event.id}`
-}
 
 function getEventDisplayLabel(event: SelectableEvent): string {
-	return getEventDisplayName(event)
+	return event.name || event.liveTimeEvent?.name || `Event #${event.id}`
 }
 
 export default function RaceEventRoundClassSelector({
@@ -147,72 +145,53 @@ export default function RaceEventRoundClassSelector({
 				<BriefContentHeader icon="fa-solid fa-filter">Race Results Explorer</BriefContentHeader>
 
 				<div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3">
-					<Column className="min-w-0" gap={1}>
-						<label htmlFor="results-event-select" className="text-sm font-semibold text-gray-700">Event</label>
-						<select
-							id="results-event-select"
-							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
-							value={selectedLiveTimeEventId ?? ''}
-							onChange={(event) => {
-								const nextId = parseInt(event.target.value, 10)
+					<Column>
+						<Select
+							label="Event"
+							value={selectedLiveTimeEventId !== null ? String(selectedLiveTimeEventId) : ''}
+							onChange={(nextValue) => {
+								const nextId = parseInt(nextValue, 10)
 								setSelectedLiveTimeEventId(Number.isFinite(nextId) ? nextId : null)
 							}}
 							disabled={isLoadingEvents || eventsWithLiveTimeId.length === 0}
-						>
-							{eventsWithLiveTimeId.length === 0 && <option value="">No events available</option>}
-							{eventsWithLiveTimeId.map((event) => (
-								<option key={event.id} value={event.livetimeID ?? ''}>
-									{getEventDisplayLabel(event)}
-								</option>
-							))}
-						</select>
+							emptyMessage="No events available"
+							options={eventsWithLiveTimeId.map((e) => ({
+								value: e.livetimeID !== null && e.livetimeID !== undefined ? String(e.livetimeID) : '',
+								label: getEventDisplayLabel(e),
+							}))}
+						/>
 					</Column>
 
-					<Column className="min-w-0" gap={1}>
-						<label htmlFor="results-round-select" className="text-sm font-semibold text-gray-700">Round</label>
-						<select
-							id="results-round-select"
-							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
+					<Column>
+						<Select
+							label="Round"
 							value={selectedRoundName}
-							onChange={(event) => setSelectedRoundName(event.target.value)}
+							onChange={setSelectedRoundName}
 							disabled={isLoadingResults || orderedRounds.length === 0}
-						>
-							{orderedRounds.length === 0 && <option value="">No rounds available</option>}
-							{orderedRounds.map((roundName) => (
-								<option key={roundName} value={roundName}>{roundName}</option>
-							))}
-						</select>
+							emptyMessage="No rounds available"
+							options={orderedRounds.map((n) => ({ value: n, label: n }))}
+						/>
 					</Column>
 
-					<Column className="min-w-0" gap={1}>
-						<label htmlFor="results-class-select" className="text-sm font-semibold text-gray-700">Class</label>
-						<select
-							id="results-class-select"
-							className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm"
+					<Column>
+						<Select
+							label="Class"
 							value={selectedClassName}
-							onChange={(event) => setSelectedClassName(event.target.value)}
+							onChange={setSelectedClassName}
 							disabled={isLoadingResults || availableClasses.length === 0}
-						>
-							{availableClasses.length === 0 && <option value="">No classes available</option>}
-							{availableClasses.map((className) => (
-								<option key={className} value={className}>{className}</option>
-							))}
-						</select>
+							emptyMessage="No classes available"
+							options={availableClasses.map((n) => ({ value: n, label: n, }))}
+						/>
 					</Column>
 				</div>
+
+				{isLoadingEvents && (
+					<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
+						Loading events...
+					</ContentWithIcon>
+				)}
 			</Column>
 
-			{isLoadingEvents && (
-				<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
-					Loading events...
-				</ContentWithIcon>
-			)}
-
-			{!isLoadingEvents && isLoadingResults && (
-				<ContentWithIcon icon="fa-solid fa-arrows-rotate fa-spin">
-					Loading race results...
-				</ContentWithIcon>
-			)}
 
 			{!isLoadingEvents && !isLoadingResults && selectedClassName && selectedClassResults.length > 0 && (
 				<div className="w-full">
