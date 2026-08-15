@@ -15,6 +15,12 @@ export default class API {
         return API.route(`events${route}`)
     }
 
+    static async checkIfStreamIsLive() {
+        const route = API.route('youtube/live')
+        API.logger.info(`Checking if YouTube stream is live... ${route}`);
+        return await HTTP.GET(route)
+    }
+
     static async getEvents() {
         const route = API.eventRoute()
         API.logger.info(`Fetching events from API... ${route}`);

@@ -1,11 +1,31 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Banner } from '@/components/ui/ui'
 import { Carousel } from '@/components/ui/carousel'
 import { bannerImages, BannerImage } from '@/content/content';
+import API from '@/lib/api/api';
 
 export default function SiteHomeBanner() {
     const defaultDisplayTimeMs = 5000;
+    const [liveVideoId, setLiveVideoId] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function updateLiveStream() {
+            try {
+                const stream = await API.checkIfStreamIsLive() as { liveVideoId: string | null };
+                setLiveVideoId(stream.liveVideoId);
+                //For testing, force the live video ID to a known live stream
+                //setLiveVideoId("gBcNYp-EBmQ");
+            } catch {
+                setLiveVideoId(null);
+            }
+        }
+
+        updateLiveStream();
+        const interval = window.setInterval(updateLiveStream, 60_000);
+        return () => window.clearInterval(interval);
+    }, []);
 
     const sideContent = {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -86,13 +106,20 @@ export default function SiteHomeBanner() {
     return (
         <Banner
             style={{ height: "68vw", maxHeight: "600px", minHeight: "100px", position: "relative", overflow: "hidden" }}
-            media={
+            media={liveVideoId ? (
+                <iframe
+                    src={`https://www.youtube.com/embed/${liveVideoId}?autoplay=1&mute=1&rel=0`}
+                    title="GJ Riverside Raceway live stream"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    style={{ width: '100%', height: '100%', border: 0 }}
+                />
+            ) : (
                 <Carousel interval={defaultDisplayTimeMs} intervals={bannerIntervals} transitionDuration={1500} timeLeftVariant={'clock'}>
                     {activeBannerImages.map((img, i) =>
                         <BannerImageWithOptionalBlur img={img} key={String(i)} />
                     )}
                 </Carousel>
-            }
+            )}
             mediaStyle={{ width: "100%", height: "100%" }}
         >
         </Banner>
