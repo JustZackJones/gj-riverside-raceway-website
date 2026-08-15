@@ -6,6 +6,8 @@ import { Carousel } from '@/components/ui/carousel'
 import { bannerImages, BannerImage } from '@/content/content';
 import API from '@/lib/api/api';
 
+const LIVE_STATUS_POLL_INTERVAL_MS = 15 * 60 * 1000;
+
 export default function SiteHomeBanner() {
     const defaultDisplayTimeMs = 5000;
     const [liveVideoId, setLiveVideoId] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export default function SiteHomeBanner() {
         }
 
         updateLiveStream();
-        const interval = window.setInterval(updateLiveStream, 60_000);
+        const interval = window.setInterval(updateLiveStream, LIVE_STATUS_POLL_INTERVAL_MS);
         return () => window.clearInterval(interval);
     }, []);
 
