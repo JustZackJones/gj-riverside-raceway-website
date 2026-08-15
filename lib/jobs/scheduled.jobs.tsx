@@ -97,19 +97,21 @@ export default class ScheduledJobs {
         const racedayJobIntervals = ScheduledJobs.RACEDAY_SYNC_INTERVAL_MS / 1000;
         const defaultJobIntervals = ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS / 1000;
 
-        //If the event is today but not yet running, log a note that the job will change later.
-        if (isToday && !isRunning) {
-            ScheduledJobs.logger.info(`Event ${nextEvent?.briefTitle} is today but not yet running. Job interval will reduce to ${racedayJobIntervals} seconds when the event starts.`);
-        }
         //If the event is today & running, reduce the interval to 2.5 minutes to check for updates
-        else if (isToday && isRunning) {
+        if (isToday && isRunning) {
             //If the event is running reduce the interval to 2.5 minutes to check for updates
             ScheduledJobs.setupJobInterval(ScheduledJobs.RACEDAY_SYNC_INTERVAL_MS); // 2.5 minutes
             ScheduledJobs.logger.info(`Event ${nextEvent?.briefTitle} is currently running. Using job interval ${racedayJobIntervals} seconds.`);
         } else {
-            //If the event is not today, or it's not running, reset the interval to the default
+            //If the event is not today/not running yet, use the default interval
             ScheduledJobs.setupJobInterval(ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS);
-            ScheduledJobs.logger.info(`Event is not running today. Using Job interval of ${defaultJobIntervals} seconds.`);
+
+            //If the event is today but not yet running, log a note that the job will change later.
+            if (isToday && !isRunning) {
+                ScheduledJobs.logger.info(`Event ${nextEvent?.briefTitle} is today but not yet running. Job interval will reduce to ${racedayJobIntervals} seconds when the event starts.`);
+            } else {
+                ScheduledJobs.logger.info(`Event is not running today. Using Job interval of ${defaultJobIntervals} seconds.`);
+            }
         }
     }
 
