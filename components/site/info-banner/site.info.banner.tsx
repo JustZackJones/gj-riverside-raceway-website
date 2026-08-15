@@ -40,7 +40,8 @@ export default function SiteInfoBanner() {
     }
 
     function TodaysEventInfo() {
-        let opensAt = TimeUtils.getShortTimeString(nextEvent!.start);
+        let agendaEvent = TrackScheduleUtils.getEventAgendaByEvent(nextEvent!);
+        let opensAt = TimeUtils.formatTimeFromString(agendaEvent!.doorsOpen);
         return <SiteInfoContent aIcon={nextEvent!.statusIcon} a={`${nextEvent!.title} today!`} b={`Doors Open at ${opensAt}`} d={<LiveTimeEventButton event={nextEvent!} />} />
     }
 
