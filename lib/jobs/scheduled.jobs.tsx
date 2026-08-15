@@ -1,4 +1,7 @@
 import SyncLiveTimeEventsJob from '@/lib/jobs/sync.livetimerc.events.job';
+import Events from '@/lib/db/events';
+import TrackScheduleUtils, { ScheduleEvent } from '@/lib/utils/track.schedule.utils';
+import { TrackEventWithLiveTime } from '@/lib/db/types'
 import { RunnableJob } from '@/lib/jobs/runnable.job';
 import Logger from '@/lib/utils/logger';
 
@@ -14,7 +17,11 @@ export default class ScheduledJobs {
     private static lastSyncIndex: number = -1;
     private static jobsRun: number = 0;
 
+    private static lastJobInterval: number = -1;
+    private static jobIntervalHandle: NodeJS.Timeout | null = null;
+
     private static DEFAULT_SYNC_INTERVAL_MS: number = 30 * 60 * 1000; // 30 minutes
+    private static RACEDAY_SYNC_INTERVAL_MS: number = 2.5 * 60 * 1000; // 2.5 minutes
 
     static getJobs(): RunnableJob[] {
         return ScheduledJobs.jobs;
@@ -40,9 +47,7 @@ export default class ScheduledJobs {
         //Set a timeout to start at the next interval boundary
         setTimeout(async () => {
             await this.runNextJob();
-            setInterval(async () => {
-                await this.runNextJob();
-            }, interval);
+            ScheduledJobs.setupJobInterval();
         }, timeUntilNextInterval);
     }
 
@@ -71,6 +76,34 @@ export default class ScheduledJobs {
         ScheduledJobs.logger.info(`Completed job run #${this.jobsRun} for job: ${job?.name} in ${jobDuration / 1000} seconds.`);
     }
 
+    private static setupJobInterval(interval: number = ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS) {
+        if (ScheduledJobs.lastJobInterval !== interval) {
+            if (ScheduledJobs.jobIntervalHandle) clearInterval(ScheduledJobs.jobIntervalHandle);
+            ScheduledJobs.jobIntervalHandle = setInterval(async () => { await this.runNextJob(); }, interval);
+            ScheduledJobs.lastJobInterval = interval;
+            ScheduledJobs.logger.info(`Job interval updated to ${interval / 1000} seconds.`);
+        }
+    }
+
+    private static async updateIntervalIfEventIsToday() {
+        let dbEvents: TrackEventWithLiveTime[] = await Events.getUpcoming();
+        let events: ScheduleEvent[] = TrackScheduleUtils.formatEvents(dbEvents);
+        //After running the job, check if there's an event today
+        const nextEvent = events && events.length > 0 ? events[0] : null;
+        const isToday = nextEvent ? TrackScheduleUtils.eventIsToday(nextEvent) : false;
+        const isRunning = nextEvent ? TrackScheduleUtils.eventIsRunning(nextEvent) : false;
+        //If the event is today & running, reduce the interval to 2.5 minutes to check for updates
+        if (isToday && isRunning) {
+            //If the event is running reduce the interval to 2.5 minutes to check for updates
+            ScheduledJobs.setupJobInterval(ScheduledJobs.RACEDAY_SYNC_INTERVAL_MS); // 2.5 minutes
+            ScheduledJobs.logger.info(`Event is running today. Updating job interval to ${ScheduledJobs.RACEDAY_SYNC_INTERVAL_MS / 1000} seconds.`);
+        } else {
+            //If the event is not today, or it's not running, reset the interval to the default
+            ScheduledJobs.setupJobInterval(ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS);
+            ScheduledJobs.logger.info(`No event is running today. Resetting job interval to default of ${ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS / 1000} seconds.`);
+        }
+    }
+
     static async runNextJob() {
         const job = ScheduledJobs.getNextJob();
         if (!job) ScheduledJobs.onNoJobToRun();
@@ -79,6 +112,8 @@ export default class ScheduledJobs {
             ScheduledJobs.onJobRunStarted(job);
             await job.run({ fullSync: isStartupRun });
             ScheduledJobs.onJobRunComplete(job);
+
+            if (!isStartupRun) await ScheduledJobs.updateIntervalIfEventIsToday();
         }
     }
 }
