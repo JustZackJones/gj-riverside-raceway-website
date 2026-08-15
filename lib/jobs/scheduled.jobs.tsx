@@ -99,13 +99,13 @@ export default class ScheduledJobs {
 
         //If the event is today but not yet running, log a note that the job will change later.
         if (isToday && !isRunning) {
-            ScheduledJobs.logger.info(`Event is today but not yet running. Job interval will reduce to ${racedayJobIntervals} seconds when the event starts.`);
+            ScheduledJobs.logger.info(`Event ${nextEvent?.briefTitle} is today but not yet running. Job interval will reduce to ${racedayJobIntervals} seconds when the event starts.`);
         }
         //If the event is today & running, reduce the interval to 2.5 minutes to check for updates
-        if (isToday && isRunning) {
+        else if (isToday && isRunning) {
             //If the event is running reduce the interval to 2.5 minutes to check for updates
             ScheduledJobs.setupJobInterval(ScheduledJobs.RACEDAY_SYNC_INTERVAL_MS); // 2.5 minutes
-            ScheduledJobs.logger.info(`Event is currently running. Using job interval ${racedayJobIntervals} seconds.`);
+            ScheduledJobs.logger.info(`Event ${nextEvent?.briefTitle} is currently running. Using job interval ${racedayJobIntervals} seconds.`);
         } else {
             //If the event is not today, or it's not running, reset the interval to the default
             ScheduledJobs.setupJobInterval(ScheduledJobs.DEFAULT_SYNC_INTERVAL_MS);
