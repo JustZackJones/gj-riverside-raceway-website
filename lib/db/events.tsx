@@ -43,11 +43,12 @@ export default class Events {
     }
 
     static async getPrevious(includeCancelled: boolean = false, limit: number = 10, sort: SortOrder = 'desc', orderBy: TrackEventOrderBy = 'start'): Promise<TrackEventWithLiveTime[]> {
-        let todayAtMidnight = new Date()
-        todayAtMidnight.setHours(0, 0, 0, 0)
+        let tomorrowAtMidnight = new Date()
+        tomorrowAtMidnight.setHours(0, 0, 0, 0)
+        tomorrowAtMidnight.setDate(tomorrowAtMidnight.getDate() + 1);
         return prisma.trackEvent.findMany({
             where: {
-                end: { lt: todayAtMidnight },
+                end: { lt: tomorrowAtMidnight },
                 visible: true,
                 cancelled: includeCancelled ? undefined : false
             },
