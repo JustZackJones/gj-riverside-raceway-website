@@ -40,7 +40,7 @@ export default class TimeUtils {
         return format(date, formatStr);
     }
 
-    static formatTimeFromString(timeStr: string, formatStr: TimeFormat = 'h:mma'): string {
+    static formatTimeFromString(timeStr: string | undefined, formatStr: TimeFormat = 'h:mma'): string {
         let midnight = this.getMidnightToday();
         let dateWithTime = this.getDateWithStringTime(midnight, timeStr);
         return this.getShortTimeString(dateWithTime);
