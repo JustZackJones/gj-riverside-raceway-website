@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server'
+import Responses from '@/lib/api/responses'
 
 const LIVE_STATUS_CACHE_MS = 15 * 60 * 1000
-const CACHE_CONTROL = 'public, s-maxage=900, stale-while-revalidate=300'
 
 export const revalidate = 900
 
@@ -61,18 +60,21 @@ async function retrieveLiveStatus(): Promise<LiveStatus> {
 
 export async function GET() {
     const now = Date.now()
+    let result: LiveStatus | null = null
 
     if (cachedStatus && now < cacheExpiresAt) {
-        return NextResponse.json(cachedStatus, { headers: { 'Cache-Control': CACHE_CONTROL } })
+        result = cachedStatus
+        console.log("Using cached live status:", result);
+    } else {
+        console.log("Fetching new live status...");
+        pendingStatus ??= retrieveLiveStatus()
+        try {
+            cachedStatus = await pendingStatus
+            result = cachedStatus
+            cacheExpiresAt = Date.now() + LIVE_STATUS_CACHE_MS
+        } finally {
+            pendingStatus = null
+        }
     }
-
-    pendingStatus ??= retrieveLiveStatus()
-
-    try {
-        cachedStatus = await pendingStatus
-        cacheExpiresAt = Date.now() + LIVE_STATUS_CACHE_MS
-        return NextResponse.json(cachedStatus, { headers: { 'Cache-Control': CACHE_CONTROL } })
-    } finally {
-        pendingStatus = null
-    }
+    return Responses.ok(result)
 }
