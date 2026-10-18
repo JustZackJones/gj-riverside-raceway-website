@@ -160,6 +160,7 @@ export default function RaceEventRoundClassSelector({
 					<Column gap={1}>
 						<Select
 							label="Event"
+							showNavigation
 							value={selectedLiveTimeEventId !== null ? String(selectedLiveTimeEventId) : ''}
 							onChange={(nextValue) => {
 								const nextId = parseInt(nextValue, 10)
@@ -178,6 +179,7 @@ export default function RaceEventRoundClassSelector({
 					<Column gap={1}>
 						<Select
 							label="Round"
+							showNavigation
 							value={selectedRoundName}
 							onChange={setSelectedRoundName}
 							disabled={isLoadingResults || orderedRounds.length === 0}
@@ -190,6 +192,7 @@ export default function RaceEventRoundClassSelector({
 					<Column gap={1}>
 						<Select
 							label="Class"
+							showNavigation
 							value={selectedClassName}
 							onChange={setSelectedClassName}
 							disabled={isLoadingResults || availableClasses.length === 0}
