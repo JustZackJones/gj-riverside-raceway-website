@@ -57,8 +57,8 @@ export default function Select({
 				))}
 			</select>
 			</div>
-			{showNavigation && (
-				<div className="relative w-6 shrink-0">
+			{showNavigation && options.length > 1 && (
+				<div className="relative w-10 shrink-0">
 					<div className="absolute inset-0 flex flex-col overflow-hidden rounded border border-gray-300 bg-white">
 					{[-1, 1].map((direction) => {
 						const nextIndex = selectedIndex + direction
